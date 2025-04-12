@@ -117,7 +117,7 @@ const Footer: React.FC<FooterProps> = ({ textColor }) => {
               <h3
                 className={`${bigShouldersDisplay.className} text-xl sm:text-2xl md:text-3xl text-black uppercase font-extrabold`}
               >
-                12th and 14th April
+                12th and 13th April
               </h3>
             </motion.div>
 
