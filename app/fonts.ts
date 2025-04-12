@@ -8,7 +8,7 @@ export const bigShouldersDisplay = Big_Shoulders_Display({
 });
 
 export const helveticaCompressed = localFont({
-  src: './fonts/helvetica-Compressed.otf', // Update this path to match your actual file
+  src: './fonts/helvetica-compressed.otf', // Update this path to match your actual file
   variable: '--font-helvetica-compressed',
   display: 'swap',
 });
