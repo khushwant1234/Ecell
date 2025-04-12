@@ -45,12 +45,9 @@ export default function LP() {
     <div className={styles.container}>
       <Head>
         <title className={`${qualy.className}`}>
-          XCELLERATE IDEATHON | E-CELL
+          XCELERATE IDEATHON | E-CELL
         </title>
-        <meta
-          name="description"
-          content="E-CELL presents XCELLERATE IDEATHON"
-        />
+        <meta name="description" content="E-CELL presents XCELERATE IDEATHON" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
@@ -66,7 +63,7 @@ export default function LP() {
             {/* Title with 3D effect */}
             <div className={styles.title3dContainer}>
               <div className={`${styles.mainTitle} ${qualy.className}`}>
-                <h1 data-text="XCELLERATE" className={`${qualy.className}`}>
+                <h1 data-text="XCELERATE" className={`${qualy.className}`}>
                   <span className={` ${styles.xLetter} ${qualy.className}`}>
                     X
                   </span>
