@@ -13,20 +13,24 @@ const CountdownClock = () => {
     isPast: false,
   });
 
-  // Function to get the next Saturday at 11 AM
-  const getNextSaturday = (): Date => {
+  // Function to get the next Sunday at 5 PM
+  const getNextSunday = (): Date => {
     const now = new Date();
     const dayOfWeek = now.getDay();
-    const daysUntilSaturday =
-      dayOfWeek === 6 && now.getHours() < 11 ? 0 : (6 + 7 - dayOfWeek) % 7;
-    const nextSaturday = new Date(now);
-    nextSaturday.setDate(now.getDate() + daysUntilSaturday);
-    nextSaturday.setHours(11, 0, 0, 0);
-    return nextSaturday;
+
+    // Calculate days until Sunday (day 0)
+    // If today is Sunday and it's before 5PM, use today, otherwise get next Sunday
+    const daysUntilSunday =
+      dayOfWeek === 0 && now.getHours() < 17 ? 0 : (7 - dayOfWeek) % 7;
+
+    const nextSunday = new Date(now);
+    nextSunday.setDate(now.getDate() + daysUntilSunday);
+    nextSunday.setHours(17, 0, 0, 0); // Set to 5:00:00 PM
+    return nextSunday;
   };
 
   // Memoize the target date
-  const targetDate = useMemo(() => getNextSaturday(), []);
+  const targetDate = useMemo(() => getNextSunday(), []);
 
   useEffect(() => {
     const calculateTimeRemaining = () => {
