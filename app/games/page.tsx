@@ -44,14 +44,14 @@ const Page = () => {
       color: "#6F30D2",
       creator: "Arjun",
     },
-    // {
-    //   title: "Space Shooter",
-    //   path: "/games/shreyas",
-    //   emoji: "🚀",
-    //   description: "Fly through space\ndestroying enemies\nin this action game",
-    //   color: "#dc2626",
-    //   creator: "Shreyas",
-    // },
+    {
+      title: "Space Shooter",
+      path: "https://ecell-defender.vercel.app/",
+      emoji: "🚀",
+      description: "Fly through space\ndestroying enemies\nin this action game",
+      color: "#dc2626",
+      creator: "Shreyas",
+    },
     {
       title: "Stock Market Sim",
       path: "/games/akshat",

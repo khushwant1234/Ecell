@@ -50,7 +50,12 @@ const Navbar: FC<NavbarProps> = ({ textColor }) => {
         </a>
         <span className="hidden lg:inline">+</span>
         <span className="hidden lg:inline underline">
-          WELCOME TO XCELERATE 2025
+          <a
+            href="https://unstop.com/competitions/xcelerate-30-ideathon-shiv-nadar-university-snu-greater-noida-1426973"
+            className="underline hover:opacity-80 transition-opacity"
+          >
+            WELCOME TO XCELERATE 2025
+          </a>
         </span>
       </div>
 
@@ -121,8 +126,8 @@ const Navbar: FC<NavbarProps> = ({ textColor }) => {
         <Link href="/about" className="hover:opacity-80 transition-opacity">
           ABOUT E-CELL
         </Link>
-        <Link href="/contacts" className="hover:opacity-80 transition-opacity">
-          CONTACTS
+        <Link href="/games" className="hover:opacity-80 transition-opacity">
+          GAMES
         </Link>
       </div>
 
@@ -166,11 +171,11 @@ const Navbar: FC<NavbarProps> = ({ textColor }) => {
               ABOUT E-CELL
             </Link>
             <Link
-              href="/"
+              href="/games"
               className="text-white hover:text-gray-300 transition-colors"
               onClick={closeMobileMenu}
             >
-              CONTACTS
+              GAMES
             </Link>
 
             {/* Mobile-only email */}
@@ -184,7 +189,13 @@ const Navbar: FC<NavbarProps> = ({ textColor }) => {
 
             {/* Xcelerate text */}
             <div className="pt-4 text-xl text-white text-center">
-              WELCOME TO XCELERATE 2025
+              <a
+                href="https://unstop.com/competitions/xcelerate-30-ideathon-shiv-nadar-university-snu-greater-noida-1426973"
+                className="text-white hover:text-gray-300 transition-colors underline"
+                onClick={closeMobileMenu}
+              >
+                WELCOME TO XCELERATE 2025
+              </a>
             </div>
           </div>
         </div>
