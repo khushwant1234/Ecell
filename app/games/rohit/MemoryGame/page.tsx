@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 
 type Card = {
@@ -18,11 +18,11 @@ export default function MemoryGame() {
 
   const emojis = ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼"];
 
-  const initializeGame = () => {
+  // Wrap initializeGame in useCallback to prevent it from being recreated on every render
+  const initializeGame = useCallback(() => {
     console.log("Initializing game...");
 
     const duplicatedEmojis = [...emojis, ...emojis];
-
     const shuffledEmojis = duplicatedEmojis.sort(() => Math.random() - 0.5);
 
     const newCards = shuffledEmojis.map((emoji, index) => ({
@@ -39,7 +39,7 @@ export default function MemoryGame() {
     setFlippedIndexes([]);
     setMoves(0);
     setGameOver(false);
-  };
+  }, [emojis]); // Add emojis as a dependency since it's used inside the function
 
   const handleCardClick = (index: number) => {
     if (!cards[index]) {
@@ -92,6 +92,7 @@ export default function MemoryGame() {
     }
   };
 
+  // Now useEffect will only re-run when initializeGame changes
   useEffect(() => {
     if (typeof window !== "undefined") {
       setTimeout(() => {
