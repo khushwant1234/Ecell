@@ -103,7 +103,6 @@ const FloatingHeader: React.FC<FloatingHeaderProps> = ({ title1, title2 }) => {
         // On smallest screens, show fewer circles
         if (windowWidth < 480 && index > 2) return null;
 
-        const delay = index * 0.2;
         const duration = 10 + index * 2;
 
         // Smaller movement on mobile for better aesthetics

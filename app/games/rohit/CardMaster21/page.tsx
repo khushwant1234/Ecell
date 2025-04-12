@@ -117,7 +117,7 @@ export default function Home() {
 
     const dealerTurn = async () => {
       let currentDealerHand = [...dealerHand];
-      let newDeck = [...deck];
+      const newDeck = [...deck];
 
       while (calculateHandValue(currentDealerHand) < 17) {
         await new Promise((resolve) => setTimeout(resolve, 700)); // Animation delay

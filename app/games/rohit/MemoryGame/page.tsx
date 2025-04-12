@@ -15,7 +15,6 @@ export default function MemoryGame() {
   const [flippedIndexes, setFlippedIndexes] = useState<number[]>([]);
   const [moves, setMoves] = useState(0);
   const [gameOver, setGameOver] = useState(false);
-  const [gameReady, setGameReady] = useState(false);
 
   const emojis = ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼"];
 
@@ -40,7 +39,6 @@ export default function MemoryGame() {
     setFlippedIndexes([]);
     setMoves(0);
     setGameOver(false);
-    setGameReady(true);
   };
 
   const handleCardClick = (index: number) => {
@@ -102,7 +100,7 @@ export default function MemoryGame() {
     }
 
     return () => {};
-  }, []);
+  }, [initializeGame]);
 
   const displayCards = cards;
 

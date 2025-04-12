@@ -57,7 +57,7 @@ const CountdownClock = () => {
     calculateTimeRemaining();
     const timer = setInterval(calculateTimeRemaining, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [targetDate]);
 
   // Format values to always have 2 digits
   const formattedDays = timeRemaining.days.toString().padStart(2, "0");

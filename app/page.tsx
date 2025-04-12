@@ -5,13 +5,13 @@ import MobileTransformLayout from "@/components/MobileTransformLayout";
 import OpportunityCards from "@/app/cards";
 import MobileCards from "@/components/MobileCards";
 import LP from "@/components/LandingPage/LP";
-import MobileLP from "@/components/LandingPage/MobileLP"; // Import the new mobile component
+import MobileLP from "@/components/LandingPage/MobileLP";
 import Navbar from "@/components/Navbar";
 import CountdownClock from "@/components/CountdownClock";
 import FAQs from "@/components/FAQ";
 import Footer from "@/components/footer/footer";
 
-const page = () => {
+const Page = () => {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -32,7 +32,7 @@ const page = () => {
     title: "Xcelerate",
     description:
       "Xcelerate is our flagship Ideathon event. It is a chance for aspiring student entrepreneurs to showcase their innovative ideas and potentially win exciting prizes worth 5L+. The event is open to all and there is no registration fee to participate.",
-    imageUrl: "/Images/Xcelerate.jpg", // Add this line to include an image
+    imageUrl: "/Images/Xcelerate.jpg",
   };
 
   const sideItems = [
@@ -72,4 +72,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;

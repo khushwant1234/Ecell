@@ -5,7 +5,7 @@ import FeaturedPersonCard from "@/components/FeaturedPersonCard";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/footer/footer";
 
-const page = () => {
+const Page = () => {
   return (
     <div className="bg-[#FCF5F0]">
       <Navbar textColor="#b63b2c"></Navbar>
@@ -22,9 +22,8 @@ const page = () => {
       />
       <ImageSlider />
       <Footer textColor="#b63b2c" />
-      {/* Add any other components or content you want here */}
     </div>
   );
 };
 
-export default page;
+export default Page;
