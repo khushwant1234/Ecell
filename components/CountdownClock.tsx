@@ -193,7 +193,7 @@ const CountdownClock = () => {
                 transition={{ duration: 1, delay: 1 }}
               >
                 <span className="text-green-600 font-semibold break-words">
-                  Event is "Live" now! 🎉
+                  Event is LIVE now! 🎉
                 </span>
               </motion.div>
             )}
