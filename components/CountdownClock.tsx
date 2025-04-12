@@ -75,7 +75,7 @@ const CountdownClock = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
       >
-        Time's Ticking!
+        Time is Ticking!
       </motion.h2>
 
       {/* Clock container - changed from overflow-hidden to allow text to be visible */}
@@ -193,7 +193,7 @@ const CountdownClock = () => {
                 transition={{ duration: 1, delay: 1 }}
               >
                 <span className="text-green-600 font-semibold break-words">
-                  Event is Live now! 🎉
+                  Event is "Live" now! 🎉
                 </span>
               </motion.div>
             )}
