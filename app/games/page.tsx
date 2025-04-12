@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import { helveticaCompressed, bigShouldersDisplay } from "@/app/fonts";
+import Footer from "@/components/footer/footer";
 
 interface GameCard {
   title: string;
@@ -79,7 +80,7 @@ const Page = () => {
       y: "-100vh",
       opacity: 1,
       scale: 0.9,
-      rotate: () => Math.random() * 8 - 4,
+      rotate: Math.random() * 8 - 4,
     },
     visible: (i: number) => ({
       y: 0,
@@ -236,6 +237,7 @@ const Page = () => {
           ))}
         </motion.div>
       </div>
+      <Footer textColor="#8082E9" />
     </div>
   );
 };
