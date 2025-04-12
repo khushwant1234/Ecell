@@ -19,7 +19,7 @@ const formatContent = (content: string) => {
   let key = 0;
 
   // Process each line
-  lines.forEach((line, index) => {
+  lines.forEach((line) => {
     const trimmedLine = line.trim();
 
     // Check if it's a bullet point
@@ -360,7 +360,7 @@ Pre-Launch Feedback
           >
             <li>
               Evaluation 1: You have 7 minutes for your pitch. Then 3 minutes
-              will be given to the judges for quesitoning. That's it.
+              will be given to the judges for quesitoning. That is it.
             </li>
             <li>Use clear, simple language and avoid industry jargon</li>
             {/* <li>
