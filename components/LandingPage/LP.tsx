@@ -67,7 +67,7 @@ export default function LP() {
                   <span className={` ${styles.xLetter} ${qualy.className}`}>
                     X
                   </span>
-                  <span className={qualy.className}>CELLERATE</span>
+                  <span className={qualy.className}>CELERATE</span>
                 </h1>
               </div>
               <div className={styles.secondTitle}>
