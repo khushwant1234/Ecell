@@ -1,6 +1,7 @@
-import { useForm } from 'react-hook-form';
+import { useForm, FieldError } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { useState } from 'react';
 import Question from './question';
 import { createClient } from '@supabase/supabase-js';
 
@@ -27,29 +28,52 @@ interface SectionData {
   questions: QuestionType[];
 }
 
+// Define the form data type based on the dynamic nature of the form
+type FormData = Record<string, any>;
+
 interface Props {
   sectionData: SectionData;
-  onSubmit: (data: any) => void;
-  allFormData: any;
+  onSubmit: (data: FormData) => void;
+  allFormData: FormData;
   selectedTeams: string[];
 }
 
+// Define the progress data structure for Supabase
+interface ProgressData {
+  selectedTeams: string[];
+  formData: FormData;
+  sectionId: string;
+  timestamp: string;
+}
+
+// Props interface for the Question component (inferred from usage)
+interface QuestionProps {
+  question: QuestionType;
+  value: string | number;
+  onChange: (value: string | number) => void;
+  onRadioChange?: (questionId: string, value: string) => void;
+  error?: string;
+}
+
 export default function Section({ sectionData, onSubmit, allFormData, selectedTeams }: Props) {
+  // State to track form values for controlled components
+  const [formValues, setFormValues] = useState<FormData>({ ...allFormData });
+
   // Dynamically build a Zod schema from our JSON validation rules
-  const schemaShape = sectionData.questions.reduce((acc: any, q) => {
-    let validator: any = z.string();
+  const schemaShape = sectionData.questions.reduce((acc: Record<string, z.ZodTypeAny>, q) => {
+    let validator: z.ZodTypeAny = z.string();
     
     if (q.type === 'number') {
-      validator = z.number();
+      validator = z.coerce.number(); // Use coerce to handle string inputs that should be numbers
     } else if (q.type === 'email') {
       validator = z.string().email("Invalid email address");
     }
     
     if (q.validation?.required) {
       if (q.type === 'number') {
-        validator = validator.min(0, q.validation.required);
+        validator = (validator as z.ZodNumber).min(0, q.validation.required);
       } else {
-        validator = validator.min(1, q.validation.required);
+        validator = (validator as z.ZodString).min(1, q.validation.required);
       }
     } else {
       validator = validator.optional();
@@ -60,15 +84,35 @@ export default function Section({ sectionData, onSubmit, allFormData, selectedTe
   }, {});
   
   const schema = z.object(schemaShape);
+  type SchemaType = z.infer<typeof schema>;
 
-  const { register, handleSubmit, formState: { errors }, setValue, getValues } = useForm({
+  const { 
+    handleSubmit, 
+    formState: { errors },
+    trigger,
+    getValues
+  } = useForm<SchemaType>({
     resolver: zodResolver(schema),
-    defaultValues: allFormData
+    values: formValues as SchemaType // Use values instead of defaultValues for controlled updates
   });
 
-  const handleRemindMe = async () => {
-    const currentFormData = getValues();
-    const email = currentFormData.email || allFormData.email;
+  // Handle value changes for individual questions
+  const handleQuestionChange = (questionId: string, value: string | number): void => {
+    setFormValues(prev => ({
+      ...prev,
+      [questionId]: value
+    }));
+    // Trigger validation for this field
+    trigger(questionId as keyof SchemaType);
+  };
+
+  // Handle radio button changes specifically
+  const handleRadioChange = (questionId: string, value: string): void => {
+    handleQuestionChange(questionId, value);
+  };
+
+  const handleRemindMe = async (): Promise<void> => {
+    const email = formValues.email || allFormData.email;
     
     if (!email) {
       alert("Please fill in your email address to save progress.");
@@ -76,9 +120,9 @@ export default function Section({ sectionData, onSubmit, allFormData, selectedTe
     }
 
     try {
-      const progressData = {
+      const progressData: ProgressData = {
         selectedTeams,
-        formData: { ...allFormData, ...currentFormData },
+        formData: { ...allFormData, ...formValues },
         sectionId: sectionData.id,
         timestamp: new Date().toISOString()
       };
@@ -86,7 +130,7 @@ export default function Section({ sectionData, onSubmit, allFormData, selectedTe
       const { error } = await supabase
         .from('progress')
         .upsert({
-          email,
+          email: email as string,
           form_data: progressData
         });
 
@@ -102,21 +146,34 @@ export default function Section({ sectionData, onSubmit, allFormData, selectedTe
     }
   };
 
+  const onFormSubmit = (data: SchemaType): void => {
+    onSubmit(data as FormData);
+  };
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-2xl mx-auto">
+    <form onSubmit={handleSubmit(onFormSubmit)} className="w-full max-w-2xl mx-auto">
       <h2 className="text-2xl font-bold mb-6 text-center">{sectionData.title}</h2>
       
-      {sectionData.questions.map((question) => (
-        <div key={question.id} className="mb-6">
-          <Question
-            question={question}
-            register={register}
-            error={errors[question.id]}
-            setValue={setValue}
-            getValues={getValues}
-          />
-        </div>
-      ))}
+      {sectionData.questions.map((question) => {
+        const error = errors[question.id] as FieldError | undefined;
+        const currentValue = formValues[question.id] || '';
+        
+        return (
+          <div key={question.id} className="mb-6">
+            <label htmlFor={question.id} className="block text-lg font-medium mb-3">
+              {question.label}
+              {question.validation?.required && <span className="text-red-500 ml-1">*</span>}
+            </label>
+            <Question
+              question={question}
+              value={currentValue}
+              onChange={(value) => handleQuestionChange(question.id, value)}
+              onRadioChange={handleRadioChange}
+              error={error?.message}
+            />
+          </div>
+        );
+      })}
       
       <div className="flex gap-4 justify-center mt-8">
         <button 
