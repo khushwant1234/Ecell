@@ -304,7 +304,7 @@ const teamConfigs: TeamConfig[] = [
         id: "designReel",
         label:
           "Drop the link to the best reel you can find (it will be taken very seriously)",
-        type: "text",
+        type: "link",
       },
       {
         id: "designPortfolio",
@@ -325,7 +325,7 @@ const teamConfigs: TeamConfig[] = [
         id: "contentMotivation",
         label:
           "Why do you wanna be a part of E-Cell, and why in the content team?",
-        type: "link",
+        type: "text",
         validation: { required: "Drop a link and tell us why you're awesome!" },
       },
       {
@@ -378,6 +378,25 @@ const teamConfigs: TeamConfig[] = [
         type: "long-text",
         validation: { required: "Share your entrepreneurial spark!" },
       },
+      {
+        id: "approachBrand",
+        label:
+          "If given a task to approach a brand for sponsorship, how would you plan your first step?",
+        type: "long-text",
+        validation: {
+          required: "Walk us through your first move — be bold and practical!",
+        },
+      },
+      {
+        id: "handleBudgetHesitancy",
+        label:
+          "Imagine a sponsor shows interest but is hesitant about the budget. How would you handle the situation?",
+        type: "long-text",
+        validation: {
+          required:
+            "Convince us — how would you save the deal (creativity wins bonus points)?",
+        },
+      },
     ],
   },
   {
@@ -387,7 +406,7 @@ const teamConfigs: TeamConfig[] = [
       {
         id: "videoMotivation",
         label: "Why do you want to be a part of the E-Cell? ",
-        type: "link",
+        type: "text",
         validation: {
           required: "Share your Oscar-worthy motivation! (Link please)",
         },
@@ -443,6 +462,135 @@ const teamConfigs: TeamConfig[] = [
         id: "videoWorkSamples",
         label: "Anything that you worked on that you'd like us to see?",
         type: "text",
+      },
+    ],
+  },
+  {
+    id: "event-team",
+    title: "Event Management Team",
+    questions: [
+      {
+        id: "jugaaduSolve",
+        label:
+          "What’s the most jugaadu (creative hack) thing you’ve ever done to solve a problem?",
+        type: "long-text",
+        validation: {
+          required: "Tell us your most creative hack — we love jugaad!",
+        },
+      },
+      {
+        id: "decorBudgetPlan",
+        label:
+          "You have a budget of ₹700 and need to decorate a hall for 100 people. What’s your plan? (Yes EM mei decor bhi hota hai)",
+        type: "long-text",
+        validation: { required: "Pitch your budget-friendly decor plan!" },
+      },
+      {
+        id: "em_timeManagement",
+        label: "Rate yourself: Time management (1–5)",
+        type: "radio",
+        options: [
+          { value: "1", label: "1" },
+          { value: "2", label: "2" },
+          { value: "3", label: "3" },
+          { value: "4", label: "4" },
+          { value: "5", label: "5" },
+        ],
+        validation: { required: "Rate your time management (1-5)" },
+      },
+      {
+        id: "em_creativity",
+        label: "Rate yourself: Creativity (1–5)",
+        type: "radio",
+        options: [
+          { value: "1", label: "1" },
+          { value: "2", label: "2" },
+          { value: "3", label: "3" },
+          { value: "4", label: "4" },
+          { value: "5", label: "5" },
+        ],
+        validation: { required: "Rate your creativity (1-5)" },
+      },
+      {
+        id: "em_handlingPressure",
+        label: "Rate yourself: Handling pressure (1–5)",
+        type: "radio",
+        options: [
+          { value: "1", label: "1" },
+          { value: "2", label: "2" },
+          { value: "3", label: "3" },
+          { value: "4", label: "4" },
+          { value: "5", label: "5" },
+        ],
+        validation: { required: "Rate your ability to handle pressure (1-5)" },
+      },
+      {
+        id: "em_teamwork",
+        label: "Rate yourself: Teamwork (1–5)",
+        type: "radio",
+        options: [
+          { value: "1", label: "1" },
+          { value: "2", label: "2" },
+          { value: "3", label: "3" },
+          { value: "4", label: "4" },
+          { value: "5", label: "5" },
+        ],
+        validation: { required: "Rate your teamwork (1-5)" },
+      },
+      {
+        id: "em_lastMinute",
+        label: "Rate yourself: Being the “last-minute saviour” (1–5)",
+        type: "radio",
+        options: [
+          { value: "1", label: "1" },
+          { value: "2", label: "2" },
+          { value: "3", label: "3" },
+          { value: "4", label: "4" },
+          { value: "5", label: "5" },
+        ],
+        validation: { required: "Rate your last-minute saviour skills (1-5)" },
+      },
+      {
+        id: "em_lateNightComfort",
+        label:
+          "Our events often mean late nights, heavy lifting, solving problems on the spot and wrapping up the event being the last ones to leave. How comfortable are you with this? (Be honest)",
+        type: "radio",
+        options: [
+          { value: "very", label: "Very comfortable" },
+          { value: "somewhat", label: "Somewhat comfortable" },
+          { value: "not", label: "Not comfortable" },
+        ],
+        validation: { required: "Be honest — how comfortable are you?" },
+      },
+      {
+        id: "em_submissionConflict",
+        label:
+          "You have a major submission the next day, but your team needs you at an event. How would you handle it?",
+        type: "long-text",
+        validation: {
+          required:
+            "Describe your plan to balance both responsibilities — practicality scores high!",
+        },
+      },
+      {
+        id: "em_outOfComfort",
+        label:
+          "Give an example of a time you took responsibility for something outside your comfort zone. (previous EM work if any)",
+        type: "long-text",
+        validation: { required: "Share that brave moment!" },
+      },
+      {
+        id: "em_lightsOut",
+        label:
+          "The lights go off during the crisis segment of Xcelarate, do you:",
+        type: "radio",
+        options: [
+          { value: "panic", label: "Panic and hide" },
+          { value: "backstage", label: "Run to the backstage" },
+          { value: "joke", label: "Crack a joke to the audience" },
+          { value: "other", label: "Something else (be smart)" },
+        ],
+        validation: { required: "Pick one — quick thinking counts!" },
       },
     ],
   },
