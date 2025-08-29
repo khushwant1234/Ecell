@@ -1,0 +1,34 @@
+{
+  "id": "tech-team",
+  "title": "Technology Team Application",
+  "questions": [
+    {
+      "id": "githubLink",
+      "label": "GitHub Profile URL",
+      "type": "link",
+      "validation": { "required": "A GitHub link is required" }
+    },
+    {
+      "id": "experienceYears",
+      "label": "Years of Professional Experience",
+      "type": "number",
+      "validation": { "required": "Please enter your years of experience" }
+    },
+    {
+      "id": "preferredStack",
+      "label": "What is your preferred tech stack?",
+      "type": "radio",
+      "options": [
+        { "value": "react", "label": "React (Next.js)" },
+        { "value": "vue", "label": "Vue (Nuxt.js)" },
+        { "value": "svelte", "label": "Svelte (SvelteKit)" }
+      ]
+    },
+    {
+      "id": "projectDescription",
+      "label": "Describe a challenging project you've worked on.",
+      "type": "long-text",
+      "enhanceable": true
+    }
+  ]
+}

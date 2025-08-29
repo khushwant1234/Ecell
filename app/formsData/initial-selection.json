@@ -1,0 +1,30 @@
+{
+  "id": "initial-selection",
+  "title": "Let's Get Started",
+  "questions": [
+    {
+      "id": "fullName",
+      "label": "Full Name",
+      "type": "text",
+      "validation": { "required": "Full name is required" }
+    },
+    {
+      "id": "email",
+      "label": "Email Address",
+      "type": "email",
+      "validation": { "required": "Email is required" }
+    },
+    {
+      "id": "teamSelection",
+      "label": "Which team(s) are you interested in?",
+      "description": "Select all that apply. You will be asked to fill out a specific form for each team you select.",
+      "type": "checkbox",
+      "validation": { "required": "Please select at least one team" },
+      "options": [
+        { "value": "tech-team", "label": "Technology Team" },
+        { "value": "product-team", "label": "Product Team" },
+        { "value": "design-team", "label": "Design Team" }
+      ]
+    }
+  ]
+}
