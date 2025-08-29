@@ -25,6 +25,11 @@
         { "value": "product-team", "label": "Product Team" },
         { "value": "design-team", "label": "Design Team" }
       ]
+    }, {
+      "id": "projectDescription",
+      "label": "Describe a challenging project you've worked on.",
+      "type": "long-text",
+      "enhanceable": true
     }
   ]
 }

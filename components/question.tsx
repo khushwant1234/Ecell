@@ -1,82 +1,127 @@
-import { UseFormRegister, FieldError, UseFormSetValue } from 'react-hook-form';
-import { useState } from 'react';
-import axios from 'axios';
+import { useState, ChangeEvent } from 'react';
 
-// Define the structure of a Question
-type QuestionOption = {
-  value: string;
-  label: string;
-};
-
-type QuestionType = {
+interface QuestionType {
   id: string;
   label: string;
   type: 'text' | 'email' | 'long-text' | 'number' | 'link' | 'radio' | 'checkbox';
-  description?: string;
-  options?: QuestionOption[];
+  validation?: {
+    required?: string;
+  };
+  options?: { value: string; label: string; }[];
   enhanceable?: boolean;
-};
+  placeholder?: string;
+}
 
-type Props = {
+interface Props {
   question: QuestionType;
-  register: UseFormRegister<any>;
-  error?: FieldError;
-  setValue: UseFormSetValue<any>;
-};
+  value: string | number;
+  onChange: (value: string | number) => void;
+  onRadioChange?: (questionId: string, value: string) => void;
+  error?: string;
+}
 
-export default function Question({ question, register, error, setValue }: Props) {
+export default function Question({ question, value, onChange, onRadioChange, error }: Props) {
   const [isEnhancing, setIsEnhancing] = useState(false);
 
   const handleEnhance = async () => {
-    // This logic remains the same
+    if (!value || typeof value !== 'string') {
+      alert("Please write something first before enhancing.");
+      return;
+    }
+
+    setIsEnhancing(true);
+    try {
+      const response = await fetch('/api/enhance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: value }),
+      });
+
+      if (response.ok) {
+        const { enhancedText } = await response.json();
+        onChange(enhancedText);
+      } else {
+        throw new Error('Enhancement failed');
+      }
+    } catch (err) {
+      console.error("Enhance failed", err);
+      alert("Sorry, we couldn't enhance the text at this moment.");
+    } finally {
+      setIsEnhancing(false);
+    }
+  };
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const newValue = question.type === 'number' ? Number(e.target.value) : e.target.value;
+    onChange(newValue);
   };
 
   const renderInput = () => {
-    switch (question.type) {
-      case 'long-text':
-        return <textarea id={question.id} {...register(question.id)} rows={5} />;
-      case 'number':
-        return <input type="number" id={question.id} {...register(question.id)} />;
-      case 'link':
-        return <input type="url" id={question.id} {...register(question.id)} placeholder="https://..." />;
-      case 'radio':
-        return (
-          <div className="options-group">
-            {question.options?.map((opt) => (
-              <div key={opt.value} className="option-item">
-                <input type="radio" id={`${question.id}-${opt.value}`} value={opt.value} {...register(question.id)} />
-                <label htmlFor={`${question.id}-${opt.value}`}>{opt.label}</label>
-              </div>
-            ))}
-          </div>
-        );
-      case 'checkbox':
-        return (
-          <div className="options-group">
-            {question.options?.map((opt) => (
-              <div key={opt.value} className="option-item">
-                <input type="checkbox" id={`${question.id}-${opt.value}`} value={opt.value} {...register(question.id)} />
-                <label htmlFor={`${question.id}-${opt.value}`}>{opt.label}</label>
-              </div>
-            ))}
-          </div>
-        );
-      default: // text, email
-        return <input type={question.type} id={question.id} {...register(question.id)} />;
+    if (question.type === 'radio' && question.options) {
+      return (
+        <div className="space-y-3">
+          {question.options.map((option) => (
+            <label key={option.value} className="flex items-center space-x-3 cursor-pointer">
+              <input
+                type="radio"
+                name={question.id}
+                value={option.value}
+                checked={value === option.value}
+                onChange={() => onRadioChange?.(question.id, option.value)}
+                className="w-5 h-5 text-blue-600"
+              />
+              <span className="text-lg">{option.label}</span>
+            </label>
+          ))}
+        </div>
+      );
     }
+
+    if (question.type === 'long-text') {
+      return (
+        <div className="space-y-4">
+          <textarea
+            id={question.id}
+            name={question.id}
+            value={value as string}
+            onChange={handleInputChange}
+            placeholder={question.placeholder}
+            required={!!question.validation?.required}
+            rows={4}
+            className="text-xl w-full max-w-2xl mx-auto bg-transparent border-2 border-gray-300 focus:border-gray-800 outline-none p-4 rounded-lg transition-colors duration-300 resize-none"
+          />
+          {question.enhanceable && (
+            <button
+              type="button"
+              onClick={handleEnhance}
+              disabled={!value || isEnhancing}
+              className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-300"
+            >
+              {isEnhancing ? 'Enhancing...' : '✨ Enhance with AI'}
+            </button>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <input
+        id={question.id}
+        name={question.id}
+        type={question.type}
+        value={value}
+        onChange={handleInputChange}
+        placeholder={question.placeholder}
+        required={!!question.validation?.required}
+        className="text-xl md:text-2xl w-full max-w-lg mx-auto bg-transparent border-b-2 border-gray-300 focus:border-gray-800 outline-none text-center p-2 transition-colors duration-300"
+      />
+    );
   };
 
   return (
     <div className="question-wrapper">
-      <label htmlFor={question.id}>{question.label}</label>
-      {question.description && <p className="description">{question.description}</p>}
+      {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
       {renderInput()}
-      {question.enhanceable && (
-         <button type="button" onClick={handleEnhance} disabled={isEnhancing} className="enhance-button">
-          {isEnhancing ? 'Enhancing...' : '✨ Enhance with AI'}
-        </button>
-      )}
-      {error && <p className="error-message">{error.message}</p>}
     </div>
   );
 }
