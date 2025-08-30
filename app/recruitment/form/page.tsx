@@ -2,7 +2,7 @@
 
 import React, { useState, FormEvent, ChangeEvent } from "react";
 import Navbar from "@/components/Navbar";
-import ProtectedRoute from "@/components/ProtectedRoute";
+import SNUProtectedRoute from "@/components/SNUProtectedRoute";
 import { supabase } from "@/lib/supabase";
 import { Camera, CircleDollarSign, PenSquare } from "lucide-react";
 
@@ -1025,7 +1025,7 @@ export default function App() {
   };
 
   return (
-    <ProtectedRoute>
+    <SNUProtectedRoute>
       <div>
         <Navbar textColor="#1f2937" />
         {view === "form" ? (
@@ -1062,6 +1062,6 @@ export default function App() {
           </div>
         )}
       </div>
-    </ProtectedRoute>
+    </SNUProtectedRoute>
   );
 }

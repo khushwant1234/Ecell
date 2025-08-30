@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 
 export default function LoginPage() {
-  const { user, signInWithGoogle, loading } = useAuth();
+  const { user, signInWithGoogle, loading, signOut } = useAuth();
   const router = useRouter();
   const [redirectPath, setRedirectPath] = useState<string>("");
 
@@ -24,6 +24,14 @@ export default function LoginPage() {
       router.push(destination);
     }
   }, [user, loading, router]);
+
+  const handleSignInWithGoogle = async () => {
+    // Sign out any existing user first
+    if (user) {
+      await signOut();
+    }
+    await signInWithGoogle();
+  };
 
   if (loading) {
     return (
@@ -44,14 +52,17 @@ export default function LoginPage() {
         <div className="max-w-md w-full mx-auto p-8">
           <div className="text-center">
             <h1 className="text-4xl font-bold mb-2">Welcome to E-Cell</h1>
-            <p className="text-gray-300 mb-8">
+            <p className="text-gray-300 mb-2">
               {redirectPath
                 ? `Sign in to access ${redirectPath}`
                 : "Sign in to access the recruitment forms"}
             </p>
+            <p className="text-yellow-400 text-sm font-medium mb-8">
+              Please use your <strong>@snu.edu.in</strong> email address
+            </p>
 
             <button
-              onClick={signInWithGoogle}
+              onClick={handleSignInWithGoogle}
               className="w-full bg-white text-black py-3 px-6 rounded-lg font-semibold hover:bg-gray-100 transition-colors duration-200 flex items-center justify-center gap-3"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">

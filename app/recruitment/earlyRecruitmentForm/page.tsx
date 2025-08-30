@@ -3,7 +3,7 @@
 import React, { useState, FormEvent, ChangeEvent } from "react";
 import { supabase } from "@/lib/supabase";
 import Navbar from "@/components/Navbar";
-import ProtectedRoute from "@/components/ProtectedRoute";
+import SNUProtectedRoute from "@/components/SNUProtectedRoute";
 
 // --- Type Definitions ---
 type View = "splash" | "form" | "success";
@@ -383,7 +383,7 @@ export default function EarlyRecruitmentForm() {
   };
 
   return (
-    <ProtectedRoute>
+    <SNUProtectedRoute>
       <div>
         <Navbar textColor="#1f2937" />
         {view === "form" ? (
@@ -431,6 +431,6 @@ export default function EarlyRecruitmentForm() {
           </div>
         )}
       </div>
-    </ProtectedRoute>
+    </SNUProtectedRoute>
   );
 }

@@ -8,6 +8,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  isValidSNUUser: boolean;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -18,6 +19,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Check if user has valid SNU email domain
+  const isValidSNUUser = user?.email?.endsWith("@snu.edu.in") ?? false;
 
   useEffect(() => {
     // Get initial session
@@ -67,6 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     session,
     loading,
+    isValidSNUUser,
     signInWithGoogle,
     signOut,
   };
