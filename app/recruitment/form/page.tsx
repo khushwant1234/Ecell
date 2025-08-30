@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, FormEvent, ChangeEvent } from "react";
+import React, { useState, FormEvent, ChangeEvent, useEffect } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import SNUProtectedRoute from "@/components/SNUProtectedRoute";
 import { supabase } from "@/lib/supabase";
@@ -294,7 +295,7 @@ const generalQuestions: Question[] = [
     id: "email",
     label: "Email address",
     type: "email",
-    placeholder: "you@example.com",
+    placeholder: "you@snu.edu.in",
     validation: { required: "Email is required" },
   },
   {
@@ -790,9 +791,25 @@ const teamConfigs: TeamConfig[] = [
 // --- Main Page Component ---
 export default function App() {
   const { user, isValidSNUUser } = useAuth();
-  const [view, setView] = useState<View>("splash");
-  const [selectedTeams, setSelectedTeams] = useState<string[]>([]);
-  const [currentTeamIndex, setCurrentTeamIndex] = useState(-1);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Initialize state from URL parameters
+  const [view, setView] = useState<View>(() => {
+    const viewParam = searchParams.get("view");
+    return (viewParam as View) || "splash";
+  });
+
+  const [selectedTeams, setSelectedTeams] = useState<string[]>(() => {
+    const teamsParam = searchParams.get("teams");
+    return teamsParam ? teamsParam.split(",") : [];
+  });
+
+  const [currentTeamIndex, setCurrentTeamIndex] = useState(() => {
+    const stepParam = searchParams.get("step");
+    return stepParam ? parseInt(stepParam, 10) : -1;
+  });
+
   const [formResponses, setFormResponses] = useState<FormResponses>({});
   const [submissionStatus, setSubmissionStatus] =
     useState<SubmissionStatus>("idle");
@@ -800,6 +817,98 @@ export default function App() {
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>(
     {}
   );
+
+  // Update URL when state changes
+  useEffect(() => {
+    const params = new URLSearchParams();
+
+    // Add view parameter
+    if (view !== "splash") {
+      params.set("view", view);
+    }
+
+    // Add teams parameter
+    if (selectedTeams.length > 0) {
+      params.set("teams", selectedTeams.join(","));
+    }
+
+    // Add step parameter for form navigation
+    if (view === "form" && currentTeamIndex >= -1) {
+      params.set("step", currentTeamIndex.toString());
+    }
+
+    // Update URL without causing a page reload
+    const newUrl = `${window.location.pathname}${
+      params.toString() ? `?${params.toString()}` : ""
+    }`;
+    router.replace(newUrl, { scroll: false });
+  }, [view, selectedTeams, currentTeamIndex, router]);
+
+  // Validate URL state on component mount and parameter changes
+  useEffect(() => {
+    const viewParam = searchParams.get("view") as View;
+    const teamsParam = searchParams.get("teams");
+    const stepParam = searchParams.get("step");
+
+    // If we're in form view but have no teams selected, redirect to teams
+    if (
+      viewParam === "form" &&
+      (!teamsParam || teamsParam.split(",").length === 0)
+    ) {
+      setView("teams");
+      setCurrentTeamIndex(-1);
+      return;
+    }
+
+    // If we have a step parameter but we're not in form view, ignore it
+    if (stepParam && viewParam !== "form") {
+      setCurrentTeamIndex(-1);
+      return;
+    }
+
+    // Validate step parameter is within bounds
+    if (viewParam === "form" && teamsParam && stepParam) {
+      const teams = teamsParam.split(",");
+      const step = parseInt(stepParam, 10);
+      const maxStep = teams.length - 1;
+
+      if (step < -1 || step > maxStep) {
+        setCurrentTeamIndex(-1); // Reset to general questions
+      }
+    }
+  }, [searchParams]);
+
+  // Helper function to get the current URL for sharing/bookmarking
+  const getCurrentUrl = () => {
+    if (typeof window !== "undefined") {
+      return window.location.href;
+    }
+    return "";
+  };
+
+  // Helper function to generate section navigation
+  const getSectionNavigation = () => {
+    if (view !== "form") return [];
+
+    const sections = [
+      {
+        name: "General Information",
+        index: -1,
+        completed: currentTeamIndex > -1,
+      },
+    ];
+
+    selectedTeams.forEach((teamId, index) => {
+      const teamConfig = teamConfigs.find((t) => t.id === teamId);
+      sections.push({
+        name: teamConfig?.title || teamId,
+        index: index,
+        completed: currentTeamIndex > index,
+      });
+    });
+
+    return sections;
+  };
 
   const currentQuestions =
     currentTeamIndex === -1
@@ -814,6 +923,7 @@ export default function App() {
 
   // --- Handlers ---
   const handleSelectTeamAndContinue = () => setView("teams");
+
   const handleTeamSelection = (teamName: string) => {
     const teamId = teamName.toLowerCase() + "-team";
     setSelectedTeams((prev) =>
@@ -822,12 +932,14 @@ export default function App() {
         : [...prev, teamId]
     );
   };
+
   const handleProceedToForms = () => {
     if (selectedTeams.length > 0) {
       setView("form");
       setCurrentTeamIndex(-1);
     }
   };
+
   const handleExitForm = () => {
     setView("teams");
     setSelectedTeams([]);
@@ -945,6 +1057,8 @@ export default function App() {
     setView("splash");
     setSubmissionStatus("idle");
     setErrorMessage("");
+    // Clear URL parameters
+    router.replace(window.location.pathname, { scroll: false });
   };
 
   // --- Question Rendering ---
@@ -1100,6 +1214,35 @@ export default function App() {
           <DesignIcon />
           Design
         </button>{" "}
+        <button
+          onClick={() => handleTeamSelection("Event")}
+          className={`${
+            bigShouldersDisplay.className
+          } flex items-center justify-center w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:-translate-y-1 text-nowrap uppercase tracking-wide ${
+            selectedTeams.includes("event-team")
+              ? "ring-2 ring-offset-2 ring-offset-slate-900 ring-white"
+              : ""
+          }`}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="mr-2 h-5 w-5"
+          >
+            <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
+            <line x1="16" x2="16" y1="2" y2="6" />
+            <line x1="8" x2="8" y1="2" y2="6" />
+            <line x1="3" x2="21" y1="10" y2="10" />
+          </svg>
+          Event Management
+        </button>{" "}
       </div>{" "}
       {selectedTeams.length > 0 && (
         <button
@@ -1118,28 +1261,72 @@ export default function App() {
     const isLastPage = currentTeamIndex === selectedTeams.length - 1;
     const totalSteps = selectedTeams.length + 1;
     const currentStep = currentTeamIndex + 1;
+
+    // Progress calculation for progress bar
+    const progressPercentage = ((currentStep + 1) / totalSteps) * 100;
+
     return (
       <div className="w-full h-screen flex flex-col bg-gray-50">
         <header className="w-full p-4 sm:p-6 bg-white border-b border-gray-200 shadow-sm">
           <div className="max-w-5xl mx-auto flex justify-between items-center">
-            <div>
+            <div className="flex-1">
               <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
                 {currentSectionTitle}
               </h2>
               <p className="text-gray-500 text-sm">
                 Step {currentStep + 1} of {totalSteps}
               </p>
+              {/* Progress bar */}
+              <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-in-out"
+                  style={{ width: `${progressPercentage}%` }}
+                ></div>
+              </div>
+              {/* Section indicator with breadcrumb navigation */}
+              <div className="mt-3 flex items-center space-x-2 text-xs">
+                {getSectionNavigation().map((section, index) => (
+                  <div key={section.index} className="flex items-center">
+                    <button
+                      onClick={() =>
+                        section.completed || section.index === currentTeamIndex
+                          ? setCurrentTeamIndex(section.index)
+                          : null
+                      }
+                      className={`px-2 py-1 rounded transition-colors ${
+                        section.index === currentTeamIndex
+                          ? "bg-blue-100 text-blue-700 font-medium"
+                          : section.completed
+                          ? "text-green-600 hover:bg-green-50 cursor-pointer"
+                          : "text-gray-400 cursor-not-allowed"
+                      }`}
+                      disabled={
+                        !section.completed && section.index !== currentTeamIndex
+                      }
+                    >
+                      {section.completed &&
+                        section.index !== currentTeamIndex && (
+                          <span className="mr-1">✓</span>
+                        )}
+                      {section.name}
+                    </button>
+                    {index < getSectionNavigation().length - 1 && (
+                      <span className="mx-1 text-gray-300">→</span>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
             <button
               onClick={handleExitForm}
-              className="text-gray-500 hover:text-gray-800 transition"
+              className="text-gray-500 hover:text-gray-800 transition ml-4"
             >
               {" "}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
                 height="24"
-                viewBox="0 0 24"
+                viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2"
@@ -1147,7 +1334,7 @@ export default function App() {
                 strokeLinejoin="round"
               >
                 <path d="M18 6 6 18" />
-                <path d="m6 6 f 12" />
+                <path d="m6 6 12 12" />
               </svg>{" "}
             </button>
           </div>
