@@ -878,6 +878,13 @@ export default function App() {
     }
   }, [searchParams]);
 
+  // Scroll to top when form section changes
+  useEffect(() => {
+    if (view === "form") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [view, currentTeamIndex]);
+
   // Helper function to get the current URL for sharing/bookmarking
   const getCurrentUrl = () => {
     if (typeof window !== "undefined") {
@@ -937,6 +944,10 @@ export default function App() {
     if (selectedTeams.length > 0) {
       setView("form");
       setCurrentTeamIndex(-1);
+      // Scroll to top when entering form
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }, 100);
     }
   };
 
@@ -991,12 +1002,16 @@ export default function App() {
   const handleNextPage = () => {
     if (validatePage() && currentTeamIndex < selectedTeams.length - 1) {
       setCurrentTeamIndex((prev) => prev + 1);
+      // Scroll to top when moving to next section
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
   const handlePreviousPage = () => {
     setValidationErrors({});
     if (currentTeamIndex > -1) {
       setCurrentTeamIndex((prev) => prev - 1);
+      // Scroll to top when moving to previous section
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
@@ -1266,7 +1281,7 @@ export default function App() {
     const progressPercentage = ((currentStep + 1) / totalSteps) * 100;
 
     return (
-      <div className="w-full h-screen flex flex-col bg-gray-50">
+      <div className="w-full h-screen flex flex-col bg-white">
         <header className="w-full p-4 sm:p-6 bg-white border-b border-gray-200 shadow-sm">
           <div className="max-w-5xl mx-auto flex justify-between items-center">
             <div className="flex-1">
@@ -1288,11 +1303,16 @@ export default function App() {
                 {getSectionNavigation().map((section, index) => (
                   <div key={section.index} className="flex items-center">
                     <button
-                      onClick={() =>
-                        section.completed || section.index === currentTeamIndex
-                          ? setCurrentTeamIndex(section.index)
-                          : null
-                      }
+                      onClick={() => {
+                        if (
+                          section.completed ||
+                          section.index === currentTeamIndex
+                        ) {
+                          setCurrentTeamIndex(section.index);
+                          // Scroll to top when navigating via breadcrumb
+                          window.scrollTo({ top: 0, behavior: "smooth" });
+                        }
+                      }}
                       className={`px-2 py-1 rounded transition-colors ${
                         section.index === currentTeamIndex
                           ? "bg-blue-100 text-blue-700 font-medium"
@@ -1339,7 +1359,7 @@ export default function App() {
             </button>
           </div>
         </header>
-        <main className="flex-grow p-4 sm:p-8">
+        <main className="flex-grow p-4 sm:p-8 bg-white">
           <div className="max-w-2xl mx-auto space-y-8">
             {" "}
             {currentQuestions.map((question) => (
@@ -1456,14 +1476,18 @@ export default function App() {
   return (
     <SNUProtectedRoute>
       <div>
-        <Navbar textColor="#1f2937" />
         {view === "form" ? (
-          renderFormPage()
+          <div>
+            <Navbar textColor="#1f2937" />
+            {renderFormPage()}
+          </div>
         ) : (
-          <div
-            className={`transition-colors duration-500 bg-gradient-to-br from-gray-800 via-slate-900 to-black`}
-          >
+          <div className={`transition-colors duration-500 bg-slate-900`}>
             <main className="flex min-h-screen flex-col items-center justify-center p-4">
+              {/* Navbar overlay */}
+              <div className="absolute top-0 left-0 right-0 z-50">
+                <Navbar textColor="white" />
+              </div>
               <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
               <div className="relative z-10 flex items-center justify-center w-full">
                 {view === "splash" && (
@@ -1472,12 +1496,12 @@ export default function App() {
                     <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-4">
                       Welcome
                       {user?.user_metadata?.full_name
-                        ? `, ${user.user_metadata.full_name.split(" ")[0]}`
+                        ? ` ${user.user_metadata.full_name.split(" ")[0]},`
                         : ""}{" "}
                       to Entrepreneurship Cell
                     </h1>{" "}
                     <p className="text-lg md:text-xl text-gray-300 mb-8">
-                      Join a team to get started.
+                      Let's start your journey with us!
                     </p>{" "}
                     <button
                       onClick={handleSelectTeamAndContinue}

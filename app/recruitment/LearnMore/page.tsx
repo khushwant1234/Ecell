@@ -11,10 +11,10 @@ import { helveticaCompressed, bigShouldersDisplay } from "@/app/fonts";
 // --- Team Data ---
 const teamsData = [
   {
-    name: "Technology Team",
+    name: "Tech Team",
     teamId: "tech-team",
     description:
-      "The Technology Team is the engine of our organization, responsible for building and maintaining our digital infrastructure. From developing websites to integrating hardware systems, this team makes ideas come alive with code and circuits.",
+      "The Tech Team is the engine of our organization, responsible for building and maintaining our digital infrastructure. From developing websites to integrating hardware systems, this team makes ideas come alive with code and circuits.",
     imageUrl: "/images/tech-team.jpg",
     icon: "💻",
     gradient: "from-blue-600 to-purple-600",
@@ -108,9 +108,12 @@ export default function LearnMorePage() {
       </Head>
 
       <div className="bg-gradient-to-br from-slate-50 via-white to-slate-100 text-slate-800 overflow-hidden">
-        <Navbar textColor="#8082E9" />
         {/* --- Hero Section --- */}
         <section className="relative min-h-screen flex items-center justify-center">
+          {/* Navbar overlay */}
+          <div className="absolute top-0 left-0 right-0 z-50">
+            <Navbar textColor="#8082E9" />
+          </div>
           {/* Animated Background */}
           <div className="absolute inset-0 overflow-hidden">
             <Image
@@ -187,7 +190,7 @@ export default function LearnMorePage() {
               <h2
                 className={`${bigShouldersDisplay.className} text-4xl md:text-5xl font-bold text-slate-900 mb-6 uppercase tracking-wide`}
               >
-                Our{" "}
+                Your{" "}
                 <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   Dream Teams
                 </span>
