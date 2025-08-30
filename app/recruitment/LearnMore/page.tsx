@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
+import { helveticaCompressed, bigShouldersDisplay } from "@/app/fonts";
 
 // --- Team Data ---
 const teamsData = [
@@ -176,13 +177,17 @@ export default function LearnMorePage() {
           <div className="max-w-7xl mx-auto px-6">
             {/* Section Header */}
             <div className="text-center mb-20">
-              <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6">
+              <h2
+                className={`${bigShouldersDisplay.className} text-4xl md:text-5xl font-bold text-slate-900 mb-6 uppercase tracking-wide`}
+              >
                 Our{" "}
                 <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   Dream Teams
                 </span>
               </h2>
-              <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+              <p
+                className={`${helveticaCompressed.className} text-xl text-slate-600 max-w-3xl mx-auto tracking-wide`}
+              >
                 Each team brings unique expertise and passion to create
                 something extraordinary together
               </p>
@@ -246,7 +251,9 @@ export default function LearnMorePage() {
                         >
                           {team.icon}
                         </div>
-                        <h3 className="text-3xl md:text-4xl font-bold text-slate-900">
+                        <h3
+                          className={`${bigShouldersDisplay.className} text-3xl md:text-4xl font-bold text-slate-900 uppercase tracking-wide`}
+                        >
                           {team.name}
                         </h3>
                       </div>
@@ -257,14 +264,16 @@ export default function LearnMorePage() {
                       />
                     </div>
 
-                    <p className="text-lg md:text-xl text-slate-600 leading-relaxed">
+                    <p
+                      className={`${helveticaCompressed.className} text-lg md:text-xl text-slate-600 leading-relaxed tracking-wide`}
+                    >
                       {team.description}
                     </p>
 
                     {/* Action Button */}
                     <div>
                       <button
-                        className={`group/btn inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r ${team.gradient} text-white rounded-xl font-semibold transition-all duration-300 hover:shadow-xl hover:scale-105`}
+                        className={`${bigShouldersDisplay.className} group/btn inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r ${team.gradient} text-white rounded-xl font-semibold transition-all duration-300 hover:shadow-xl hover:scale-105 uppercase tracking-wide`}
                       >
                         Join This Team
                         <svg
@@ -294,10 +303,14 @@ export default function LearnMorePage() {
           {/* <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width={60} height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Ccircle cx="7" cy="7" r="1"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20" /> */}
 
           <div className="relative max-w-4xl mx-auto text-center px-6">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+            <h2
+              className={`${bigShouldersDisplay.className} text-4xl md:text-5xl font-bold text-white mb-6 uppercase tracking-wide`}
+            >
               Ready to Make an Impact?
             </h2>
-            <p className="text-xl text-blue-100 mb-12 max-w-2xl mx-auto">
+            <p
+              className={`${helveticaCompressed.className} text-xl text-blue-100 mb-12 max-w-2xl mx-auto tracking-wide`}
+            >
               Join a team that values innovation, collaboration, and the drive
               to create meaningful change
             </p>
@@ -305,13 +318,13 @@ export default function LearnMorePage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/recruitment/form"
-                className="px-8 py-4 bg-white text-slate-900 rounded-full font-semibold text-lg hover:bg-gray-100 transition-all duration-300 hover:scale-105 shadow-xl inline-flex items-center justify-center"
+                className={`${bigShouldersDisplay.className} px-8 py-4 bg-white text-slate-900 rounded-full font-semibold text-lg hover:bg-gray-100 transition-all duration-300 hover:scale-105 shadow-xl inline-flex items-center justify-center uppercase tracking-wide`}
               >
                 Apply Now
               </Link>
               <Link
                 href="/about"
-                className="px-8 py-4 border-2 border-white text-white rounded-full font-semibold text-lg hover:bg-white hover:text-slate-900 transition-all duration-300 hover:scale-105 inline-flex items-center justify-center"
+                className={`${bigShouldersDisplay.className} px-8 py-4 border-2 border-white text-white rounded-full font-semibold text-lg hover:bg-white hover:text-slate-900 transition-all duration-300 hover:scale-105 inline-flex items-center justify-center uppercase tracking-wide`}
               >
                 About Us
               </Link>

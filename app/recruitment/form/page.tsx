@@ -1,14 +1,206 @@
 "use client";
 
-import React, { useState, FormEvent, ChangeEvent } from "react";
+import React, { useState, FormEvent, ChangeEvent, useEffect } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
-import { createClient } from "@supabase/supabase-js";
+import SNUProtectedRoute from "@/components/SNUProtectedRoute";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 import { Camera, CircleDollarSign, PenSquare } from "lucide-react";
+import { helveticaCompressed, bigShouldersDisplay } from "@/app/fonts";
 
-// --- Supabase Client Setup ---
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const prompt = [
+  {
+    team: "Tech",
+    scene: "a playful digital workspace",
+    subjects: [
+      {
+        type: "laptop",
+        description: "screen glowing with colorful code symbols",
+        position: "center",
+      },
+      {
+        type: "gear",
+        description: "small, floating, representing problem-solving",
+        position: "around the laptop",
+      },
+      {
+        type: "lightbulb",
+        description: "glowing with soft light",
+        position: "above the laptop",
+      },
+    ],
+    style: "flat modern vector illustration",
+    color_palette: ["neon blue", "teal", "sunny yellow"],
+    lighting: "soft glow from the screen",
+    mood: "innovative, fun, and approachable",
+    background: "abstract geometric shapes",
+    composition: "eye-level, centered icon focus",
+  },
+  {
+    team: "PR & Sponsorship",
+    scene: "a dynamic communication hub",
+    subjects: [
+      {
+        type: "handshake",
+        description: "two cartoon hands shaking warmly",
+        position: "center",
+      },
+      {
+        type: "megaphone",
+        description: "bright and cheerful, sound waves illustrated",
+        position: "side",
+      },
+      {
+        type: "sparkles",
+        description: "small glowing accents for excitement",
+        position: "scattered",
+      },
+    ],
+    style: "playful flat illustration",
+    color_palette: ["orange", "sky blue", "purple"],
+    lighting: "bright and friendly",
+    mood: "trustworthy, energetic, welcoming",
+    background: "simple abstract circles",
+    composition: "central handshake with accents",
+  },
+  {
+    team: "Marketing",
+    scene: "an energetic growth concept",
+    subjects: [
+      {
+        type: "rocket",
+        description: "colorful, cartoonish, launching upward",
+        position: "center",
+      },
+      {
+        type: "bar chart",
+        description: "with colorful upward arrows",
+        position: "beneath rocket",
+      },
+      {
+        type: "dollar symbol",
+        description: "small accent icons floating upward",
+        position: "around",
+      },
+    ],
+    style: "bold flat cartoon vector",
+    color_palette: ["bright green", "electric blue", "magenta"],
+    lighting: "glowing launch effect",
+    mood: "energetic, ambitious, student-friendly",
+    background: "abstract motion lines",
+    composition: "upward vertical flow",
+  },
+  {
+    team: "Design",
+    scene: "a creative studio space",
+    subjects: [
+      {
+        type: "pencil",
+        description: "crossed with a paintbrush",
+        position: "center",
+      },
+      {
+        type: "abstract shapes",
+        description: "triangles, circles, squiggles, colorful",
+        position: "floating around",
+      },
+      {
+        type: "sparkles",
+        description: "tiny glowing dots",
+        position: "background",
+      },
+    ],
+    style: "modern flat playful vector",
+    color_palette: ["pastel pink", "aqua", "yellow"],
+    lighting: "soft and warm",
+    mood: "artistic, fun, inviting",
+    background: "minimal abstract shapes",
+    composition: "centered crossed tools",
+  },
+  {
+    team: "Videography",
+    scene: "a cinematic creative space",
+    subjects: [
+      {
+        type: "film camera",
+        description: "cartoon vintage camera with reels",
+        position: "center",
+      },
+      {
+        type: "play button",
+        description: "glowing brightly",
+        position: "on the camera",
+      },
+      {
+        type: "abstract waves",
+        description: "colorful waves flowing outward",
+        position: "background",
+      },
+    ],
+    style: "flat minimal illustration",
+    color_palette: ["deep purple", "gold", "sky blue"],
+    lighting: "soft glow from play button",
+    mood: "creative, fun, youthful",
+    background: "simple abstract waves",
+    composition: "centered camera with accents",
+  },
+  {
+    team: "Event Management",
+    scene: "a festive planning board",
+    subjects: [
+      {
+        type: "calendar",
+        description: "colorful, with circled date",
+        position: "center",
+      },
+      {
+        type: "balloons",
+        description: "playful, floating upward",
+        position: "around",
+      },
+      {
+        type: "confetti",
+        description: "bright and scattered",
+        position: "background",
+      },
+    ],
+    style: "cartoon flat vector",
+    color_palette: ["red", "yellow", "blue"],
+    lighting: "cheerful and bright",
+    mood: "celebratory, fun, welcoming",
+    background: "confetti-filled space",
+    composition: "central calendar with festive accents",
+  },
+  {
+    team: "Content",
+    scene: "a creative writing desk",
+    subjects: [
+      {
+        type: "notebook",
+        description: "open with visible lines",
+        position: "center",
+      },
+      {
+        type: "quill pen",
+        description: "cartoon feather pen writing softly",
+        position: "on notebook",
+      },
+      {
+        type: "speech bubbles",
+        description: "colorful, small, with letters and hashtags",
+        position: "floating around",
+      },
+    ],
+    style: "flat modern vector",
+    color_palette: ["warm orange", "teal", "lavender"],
+    lighting: "soft warm glow",
+    mood: "expressive, fun, inviting",
+    background: "minimal abstract dots",
+    composition: "centered notebook with accents",
+  },
+];
 
 // --- Helper Components for Icons ---
 const TechIcon = () => (
@@ -103,7 +295,7 @@ const generalQuestions: Question[] = [
     id: "email",
     label: "Email address",
     type: "email",
-    placeholder: "you@example.com",
+    placeholder: "you@snu.edu.in",
     validation: { required: "Email is required" },
   },
   {
@@ -598,9 +790,26 @@ const teamConfigs: TeamConfig[] = [
 
 // --- Main Page Component ---
 export default function App() {
-  const [view, setView] = useState<View>("splash");
-  const [selectedTeams, setSelectedTeams] = useState<string[]>([]);
-  const [currentTeamIndex, setCurrentTeamIndex] = useState(-1);
+  const { user, isValidSNUUser } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Initialize state from URL parameters
+  const [view, setView] = useState<View>(() => {
+    const viewParam = searchParams.get("view");
+    return (viewParam as View) || "splash";
+  });
+
+  const [selectedTeams, setSelectedTeams] = useState<string[]>(() => {
+    const teamsParam = searchParams.get("teams");
+    return teamsParam ? teamsParam.split(",") : [];
+  });
+
+  const [currentTeamIndex, setCurrentTeamIndex] = useState(() => {
+    const stepParam = searchParams.get("step");
+    return stepParam ? parseInt(stepParam, 10) : -1;
+  });
+
   const [formResponses, setFormResponses] = useState<FormResponses>({});
   const [submissionStatus, setSubmissionStatus] =
     useState<SubmissionStatus>("idle");
@@ -608,6 +817,98 @@ export default function App() {
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>(
     {}
   );
+
+  // Update URL when state changes
+  useEffect(() => {
+    const params = new URLSearchParams();
+
+    // Add view parameter
+    if (view !== "splash") {
+      params.set("view", view);
+    }
+
+    // Add teams parameter
+    if (selectedTeams.length > 0) {
+      params.set("teams", selectedTeams.join(","));
+    }
+
+    // Add step parameter for form navigation
+    if (view === "form" && currentTeamIndex >= -1) {
+      params.set("step", currentTeamIndex.toString());
+    }
+
+    // Update URL without causing a page reload
+    const newUrl = `${window.location.pathname}${
+      params.toString() ? `?${params.toString()}` : ""
+    }`;
+    router.replace(newUrl, { scroll: false });
+  }, [view, selectedTeams, currentTeamIndex, router]);
+
+  // Validate URL state on component mount and parameter changes
+  useEffect(() => {
+    const viewParam = searchParams.get("view") as View;
+    const teamsParam = searchParams.get("teams");
+    const stepParam = searchParams.get("step");
+
+    // If we're in form view but have no teams selected, redirect to teams
+    if (
+      viewParam === "form" &&
+      (!teamsParam || teamsParam.split(",").length === 0)
+    ) {
+      setView("teams");
+      setCurrentTeamIndex(-1);
+      return;
+    }
+
+    // If we have a step parameter but we're not in form view, ignore it
+    if (stepParam && viewParam !== "form") {
+      setCurrentTeamIndex(-1);
+      return;
+    }
+
+    // Validate step parameter is within bounds
+    if (viewParam === "form" && teamsParam && stepParam) {
+      const teams = teamsParam.split(",");
+      const step = parseInt(stepParam, 10);
+      const maxStep = teams.length - 1;
+
+      if (step < -1 || step > maxStep) {
+        setCurrentTeamIndex(-1); // Reset to general questions
+      }
+    }
+  }, [searchParams]);
+
+  // Helper function to get the current URL for sharing/bookmarking
+  const getCurrentUrl = () => {
+    if (typeof window !== "undefined") {
+      return window.location.href;
+    }
+    return "";
+  };
+
+  // Helper function to generate section navigation
+  const getSectionNavigation = () => {
+    if (view !== "form") return [];
+
+    const sections = [
+      {
+        name: "General Information",
+        index: -1,
+        completed: currentTeamIndex > -1,
+      },
+    ];
+
+    selectedTeams.forEach((teamId, index) => {
+      const teamConfig = teamConfigs.find((t) => t.id === teamId);
+      sections.push({
+        name: teamConfig?.title || teamId,
+        index: index,
+        completed: currentTeamIndex > index,
+      });
+    });
+
+    return sections;
+  };
 
   const currentQuestions =
     currentTeamIndex === -1
@@ -622,6 +923,7 @@ export default function App() {
 
   // --- Handlers ---
   const handleSelectTeamAndContinue = () => setView("teams");
+
   const handleTeamSelection = (teamName: string) => {
     const teamId = teamName.toLowerCase() + "-team";
     setSelectedTeams((prev) =>
@@ -630,12 +932,14 @@ export default function App() {
         : [...prev, teamId]
     );
   };
+
   const handleProceedToForms = () => {
     if (selectedTeams.length > 0) {
       setView("form");
       setCurrentTeamIndex(-1);
     }
   };
+
   const handleExitForm = () => {
     setView("teams");
     setSelectedTeams([]);
@@ -699,6 +1003,22 @@ export default function App() {
   const handleFormSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!validatePage() || submissionStatus === "submitting") return;
+
+    // Authentication and SNU email validation
+    if (!user) {
+      setErrorMessage("You must be logged in to submit the form.");
+      setSubmissionStatus("error");
+      return;
+    }
+
+    if (!isValidSNUUser) {
+      setErrorMessage(
+        "Only users with @snu.edu.in email addresses can submit forms."
+      );
+      setSubmissionStatus("error");
+      return;
+    }
+
     setSubmissionStatus("submitting");
     setErrorMessage("");
     try {
@@ -710,6 +1030,8 @@ export default function App() {
         email: formResponses.email,
         teams: teamNames,
         form_data: formResponses,
+        user_id: user.id, // Add user ID for tracking
+        user_email: user.email, // Add authenticated user email
         submitted_at: new Date().toISOString(),
       };
       const { error } = await supabase
@@ -735,6 +1057,8 @@ export default function App() {
     setView("splash");
     setSubmissionStatus("idle");
     setErrorMessage("");
+    // Clear URL parameters
+    router.replace(window.location.pathname, { scroll: false });
   };
 
   // --- Question Rendering ---
@@ -794,17 +1118,31 @@ export default function App() {
   const renderTeamSelection = () => (
     <div className="text-center w-full max-w-4xl flex flex-col items-center">
       {" "}
-      <h2 className="text-3xl md:text-4xl font-bold text-white mb-2">
+      <h2
+        className={`${bigShouldersDisplay.className} text-3xl md:text-4xl font-bold text-white mb-2 uppercase tracking-wide`}
+      >
         Choose Your Team(s)
       </h2>{" "}
-      <p className="text-md text-gray-300 mb-8">
+      <p
+        className={`${bigShouldersDisplay.className} text-md text-gray-300 mb-4 tracking-wide`}
+      >
         Select all departments you&apos;d like to apply for.
       </p>{" "}
+      <div className="mb-6">
+        <Link
+          href="/recruitment/LearnMore"
+          className={`${bigShouldersDisplay.className} inline-flex items-center text-blue-300 hover:text-blue-100 underline underline-offset-4 transition-colors duration-200 tracking-wide`}
+        >
+          Want to read more about the teams? Learn More →
+        </Link>
+      </div>{" "}
       <div className="flex flex-wrap justify-center items-center gap-4 mb-8">
         {" "}
         <button
           onClick={() => handleTeamSelection("Tech")}
-          className={`flex items-center justify-center w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:-translate-y-1 ${
+          className={`${
+            bigShouldersDisplay.className
+          } flex items-center justify-center w-full sm:w-auto bg-pink-500 hover:bg-pink-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:-translate-y-1 uppercase tracking-wide ${
             selectedTeams.includes("tech-team")
               ? "ring-2 ring-offset-2 ring-offset-slate-900 ring-white"
               : ""
@@ -815,7 +1153,9 @@ export default function App() {
         </button>{" "}
         <button
           onClick={() => handleTeamSelection("Content")}
-          className={`flex items-center justify-center w-full sm:w-auto bg-pink-500 hover:bg-pink-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:-translate-y-1 text-nowrap ${
+          className={`${
+            bigShouldersDisplay.className
+          } flex items-center justify-center w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:-translate-y-1 text-nowrap uppercase tracking-wide ${
             selectedTeams.includes("content-team")
               ? "ring-2 ring-offset-2 ring-offset-slate-900 ring-white"
               : ""
@@ -826,7 +1166,9 @@ export default function App() {
         </button>{" "}
         <button
           onClick={() => handleTeamSelection("PR-Spons")}
-          className={`flex items-center justify-center w-full sm:w-auto bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:-translate-y-1 text-nowrap${
+          className={`${
+            bigShouldersDisplay.className
+          } flex items-center justify-center w-full sm:w-auto bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:-translate-y-1 text-nowrap uppercase tracking-wide ${
             selectedTeams.includes("pr-spons-team")
               ? "ring-2 ring-offset-2 ring-offset-slate-900 ring-white"
               : ""
@@ -836,7 +1178,9 @@ export default function App() {
         </button>{" "}
         <button
           onClick={() => handleTeamSelection("Video")}
-          className={`flex items-center justify-center w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:-translate-y-1 ${
+          className={`${
+            bigShouldersDisplay.className
+          } flex items-center justify-center w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:-translate-y-1 uppercase tracking-wide ${
             selectedTeams.includes("video-team")
               ? "ring-2 ring-offset-2 ring-offset-slate-900 ring-white"
               : ""
@@ -846,7 +1190,9 @@ export default function App() {
         </button>{" "}
         <button
           onClick={() => handleTeamSelection("Marketing")}
-          className={`flex items-center justify-center w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:-translate-y-1 ${
+          className={`${
+            bigShouldersDisplay.className
+          } flex items-center justify-center w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:-translate-y-1 uppercase tracking-wide ${
             selectedTeams.includes("marketing-team")
               ? "ring-2 ring-offset-2 ring-offset-slate-900 ring-white"
               : ""
@@ -857,7 +1203,9 @@ export default function App() {
         </button>{" "}
         <button
           onClick={() => handleTeamSelection("Design")}
-          className={`flex items-center justify-center w-full sm:w-auto bg-purple-500 hover:bg-purple-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:-translate-y-1 ${
+          className={`${
+            bigShouldersDisplay.className
+          } flex items-center justify-center w-full sm:w-auto bg-purple-500 hover:bg-purple-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:-translate-y-1 uppercase tracking-wide ${
             selectedTeams.includes("design-team")
               ? "ring-2 ring-offset-2 ring-offset-slate-900 ring-white"
               : ""
@@ -866,11 +1214,40 @@ export default function App() {
           <DesignIcon />
           Design
         </button>{" "}
+        <button
+          onClick={() => handleTeamSelection("Event")}
+          className={`${
+            bigShouldersDisplay.className
+          } flex items-center justify-center w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:-translate-y-1 text-nowrap uppercase tracking-wide ${
+            selectedTeams.includes("event-team")
+              ? "ring-2 ring-offset-2 ring-offset-slate-900 ring-white"
+              : ""
+          }`}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="mr-2 h-5 w-5"
+          >
+            <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
+            <line x1="16" x2="16" y1="2" y2="6" />
+            <line x1="8" x2="8" y1="2" y2="6" />
+            <line x1="3" x2="21" y1="10" y2="10" />
+          </svg>
+          Event Management
+        </button>{" "}
       </div>{" "}
       {selectedTeams.length > 0 && (
         <button
           onClick={handleProceedToForms}
-          className="bg-white text-blue-600 font-semibold py-3 px-8 rounded-full shadow-lg hover:bg-gray-200 transition-transform transform hover:scale-105 duration-300 ease-in-out"
+          className={`${bigShouldersDisplay.className} bg-white text-blue-600 font-semibold py-3 px-8 rounded-full shadow-lg hover:bg-gray-200 transition-transform transform hover:scale-105 duration-300 ease-in-out uppercase tracking-wide`}
         >
           {" "}
           Start Application ({selectedTeams.length} team
@@ -884,28 +1261,72 @@ export default function App() {
     const isLastPage = currentTeamIndex === selectedTeams.length - 1;
     const totalSteps = selectedTeams.length + 1;
     const currentStep = currentTeamIndex + 1;
+
+    // Progress calculation for progress bar
+    const progressPercentage = ((currentStep + 1) / totalSteps) * 100;
+
     return (
       <div className="w-full h-screen flex flex-col bg-gray-50">
         <header className="w-full p-4 sm:p-6 bg-white border-b border-gray-200 shadow-sm">
           <div className="max-w-5xl mx-auto flex justify-between items-center">
-            <div>
+            <div className="flex-1">
               <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
                 {currentSectionTitle}
               </h2>
               <p className="text-gray-500 text-sm">
                 Step {currentStep + 1} of {totalSteps}
               </p>
+              {/* Progress bar */}
+              <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-in-out"
+                  style={{ width: `${progressPercentage}%` }}
+                ></div>
+              </div>
+              {/* Section indicator with breadcrumb navigation */}
+              <div className="mt-3 flex items-center space-x-2 text-xs">
+                {getSectionNavigation().map((section, index) => (
+                  <div key={section.index} className="flex items-center">
+                    <button
+                      onClick={() =>
+                        section.completed || section.index === currentTeamIndex
+                          ? setCurrentTeamIndex(section.index)
+                          : null
+                      }
+                      className={`px-2 py-1 rounded transition-colors ${
+                        section.index === currentTeamIndex
+                          ? "bg-blue-100 text-blue-700 font-medium"
+                          : section.completed
+                          ? "text-green-600 hover:bg-green-50 cursor-pointer"
+                          : "text-gray-400 cursor-not-allowed"
+                      }`}
+                      disabled={
+                        !section.completed && section.index !== currentTeamIndex
+                      }
+                    >
+                      {section.completed &&
+                        section.index !== currentTeamIndex && (
+                          <span className="mr-1">✓</span>
+                        )}
+                      {section.name}
+                    </button>
+                    {index < getSectionNavigation().length - 1 && (
+                      <span className="mx-1 text-gray-300">→</span>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
             <button
               onClick={handleExitForm}
-              className="text-gray-500 hover:text-gray-800 transition"
+              className="text-gray-500 hover:text-gray-800 transition ml-4"
             >
               {" "}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
                 height="24"
-                viewBox="0 0 24"
+                viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2"
@@ -926,7 +1347,7 @@ export default function App() {
                 {" "}
                 <label
                   htmlFor={question.id}
-                  className="block text-lg font-medium text-gray-700 mb-1"
+                  className={`${helveticaCompressed.className} block text-lg font-medium text-gray-700 mb-1 tracking-wide`}
                 >
                   {" "}
                   {question.label}{" "}
@@ -1009,17 +1430,21 @@ export default function App() {
             d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
           />
         </svg>
-        <h2 className="mt-6 text-3xl font-bold text-gray-900">
+        <h2
+          className={`${bigShouldersDisplay.className} mt-6 text-3xl font-bold text-gray-900 uppercase tracking-wide`}
+        >
           Application Submitted!
         </h2>
-        <p className="mt-4 text-lg text-gray-600">
+        <p
+          className={`${helveticaCompressed.className} mt-4 text-lg text-gray-600 tracking-wide`}
+        >
           {" "}
           Thank you for your interest. We&apos;ve received your application for
           the <strong>{teamNames}</strong> team(s) and will be in touch shortly.{" "}
         </p>
         <button
           onClick={handleStartOver}
-          className="mt-8 bg-indigo-600 text-white font-semibold py-3 px-8 rounded-lg shadow-md hover:bg-indigo-700 transition-all transform hover:scale-105 duration-300"
+          className={`${bigShouldersDisplay.className} mt-8 bg-indigo-600 text-white font-semibold py-3 px-8 rounded-lg shadow-md hover:bg-indigo-700 transition-all transform hover:scale-105 duration-300 uppercase tracking-wide`}
         >
           {" "}
           Submit Another Application{" "}
@@ -1029,41 +1454,43 @@ export default function App() {
   };
 
   return (
-    <div>
-      <Navbar textColor="#1f2937" />
-      {view === "form" ? (
-        renderFormPage()
-      ) : (
-        <div
-          className={`transition-colors duration-500 bg-gradient-to-br from-gray-800 via-slate-900 to-black`}
-        >
-          <main className="flex min-h-screen flex-col items-center justify-center p-4">
-            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
-            <div className="relative z-10 flex items-center justify-center w-full">
-              {view === "splash" && (
-                <div className="text-center">
-                  {" "}
-                  <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-4">
-                    Welcome to Entrepreneurship Cell
-                  </h1>{" "}
-                  <p className="text-lg md:text-xl text-gray-300 mb-8">
-                    Join a team to get started.
-                  </p>{" "}
-                  <button
-                    onClick={handleSelectTeamAndContinue}
-                    className="bg-white text-blue-600 font-semibold py-3 px-8 rounded-full shadow-lg hover:bg-gray-200 transition-transform transform hover:scale-105 duration-300 ease-in-out"
-                  >
+    <SNUProtectedRoute>
+      <div>
+        <Navbar textColor="#1f2937" />
+        {view === "form" ? (
+          renderFormPage()
+        ) : (
+          <div
+            className={`transition-colors duration-500 bg-gradient-to-br from-gray-800 via-slate-900 to-black`}
+          >
+            <main className="flex min-h-screen flex-col items-center justify-center p-4">
+              <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
+              <div className="relative z-10 flex items-center justify-center w-full">
+                {view === "splash" && (
+                  <div className="text-center">
                     {" "}
-                    Select Team and Continue{" "}
-                  </button>{" "}
-                </div>
-              )}
-              {view === "teams" && renderTeamSelection()}
-              {view === "success" && renderSuccessMessage()}
-            </div>
-          </main>
-        </div>
-      )}
-    </div>
+                    <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-4">
+                      Welcome to Entrepreneurship Cell
+                    </h1>{" "}
+                    <p className="text-lg md:text-xl text-gray-300 mb-8">
+                      Join a team to get started.
+                    </p>{" "}
+                    <button
+                      onClick={handleSelectTeamAndContinue}
+                      className="bg-white text-blue-600 font-semibold py-3 px-8 rounded-full shadow-lg hover:bg-gray-200 transition-transform transform hover:scale-105 duration-300 ease-in-out"
+                    >
+                      {" "}
+                      Select Team and Continue{" "}
+                    </button>{" "}
+                  </div>
+                )}
+                {view === "teams" && renderTeamSelection()}
+                {view === "success" && renderSuccessMessage()}
+              </div>
+            </main>
+          </div>
+        )}
+      </div>
+    </SNUProtectedRoute>
   );
 }
