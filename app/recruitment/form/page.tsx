@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, FormEvent, ChangeEvent, useEffect } from "react";
+import React, { useState, FormEvent, ChangeEvent, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
@@ -789,7 +789,7 @@ const teamConfigs: TeamConfig[] = [
 ];
 
 // --- Main Page Component ---
-export default function App() {
+function App() {
   const { user, isValidSNUUser } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -1520,5 +1520,24 @@ export default function App() {
         )}
       </div>
     </SNUProtectedRoute>
+  );
+}
+
+// Loading component for Suspense fallback
+const FormPageLoading = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+      <p className="mt-4 text-gray-600">Loading form...</p>
+    </div>
+  </div>
+);
+
+// Wrapper component with Suspense boundary
+export default function FormPage() {
+  return (
+    <Suspense fallback={<FormPageLoading />}>
+      <App />
+    </Suspense>
   );
 }
