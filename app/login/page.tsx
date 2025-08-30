@@ -2,17 +2,26 @@
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 
 export default function LoginPage() {
   const { user, signInWithGoogle, loading } = useAuth();
   const router = useRouter();
+  const [redirectPath, setRedirectPath] = useState<string>("");
 
   useEffect(() => {
-    // If user is already logged in, redirect to forms page
+    // Get the intended destination from sessionStorage
+    const storedPath = sessionStorage.getItem("redirectPath");
+    if (storedPath) {
+      setRedirectPath(storedPath);
+    }
+
+    // If user is already logged in, redirect to intended destination or forms page
     if (user && !loading) {
-      router.push("/recruitment/form");
+      const destination = storedPath || "/recruitment/form";
+      sessionStorage.removeItem("redirectPath");
+      router.push(destination);
     }
   }, [user, loading, router]);
 
@@ -36,7 +45,9 @@ export default function LoginPage() {
           <div className="text-center">
             <h1 className="text-4xl font-bold mb-2">Welcome to E-Cell</h1>
             <p className="text-gray-300 mb-8">
-              Sign in to access the recruitment forms
+              {redirectPath
+                ? `Sign in to access ${redirectPath}`
+                : "Sign in to access the recruitment forms"}
             </p>
 
             <button

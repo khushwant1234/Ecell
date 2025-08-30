@@ -19,8 +19,15 @@ export default function AuthCallback() {
         }
 
         if (data.session) {
-          // Successfully authenticated, redirect to forms page
-          router.push("/recruitment/form");
+          // Successfully authenticated, check for stored redirect path
+          const redirectPath = sessionStorage.getItem("redirectPath");
+
+          // Clear the stored path
+          sessionStorage.removeItem("redirectPath");
+
+          // Redirect to the original page or default to forms page
+          const destination = redirectPath || "/recruitment/form";
+          router.push(destination);
         } else {
           // No session found, redirect to login
           router.push("/login");

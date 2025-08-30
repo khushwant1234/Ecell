@@ -1,6 +1,5 @@
 "use client";
 import Link from "next/link";
-import Image from "next/image";
 import { FC, useState, useEffect } from "react";
 import { helveticaCompressed } from "@/app/fonts";
 import { useAuth } from "@/contexts/AuthContext";
@@ -39,7 +38,7 @@ const Navbar: FC<NavbarProps> = ({ textColor }) => {
     <nav
       className={`${helveticaCompressed.className} relative flex justify-between items-center py-4 px-4 sm:px-6 lg:px-12 tracking-wide text-xl z-30`}
     >
-      {/* Left side - Contact & Welcome */}
+      {/* Left side - Contact */}
       <div
         className="hidden md:flex items-center space-x-4"
         style={{ color: textColor }}
@@ -50,15 +49,6 @@ const Navbar: FC<NavbarProps> = ({ textColor }) => {
         >
           ECELL@SNU.EDU.IN
         </a>
-        <span className="hidden lg:inline">+</span>
-        <span className="hidden lg:inline underline">
-          <a
-            href="https://unstop.com/competitions/xcelerate-30-ideathon-shiv-nadar-university-snu-greater-noida-1426973"
-            className="underline hover:opacity-80 transition-opacity"
-          >
-            WELCOME TO XCELERATE 2025
-          </a>
-        </span>
       </div>
 
       {/* Mobile hamburger */}
@@ -101,27 +91,20 @@ const Navbar: FC<NavbarProps> = ({ textColor }) => {
         )}
       </button>
 
-      {/* Center logo - stays centered on all screen sizes */}
-      <div className="absolute left-1/2 transform -translate-x-1/2">
+      {/* Center text - stays centered on all screen sizes */}
+      {/* <div className="absolute left-1/2 transform -translate-x-1/2">
         <Link href={"/"} className="flex items-center">
-          <Image
-            src="/Images/logo.svg"
-            alt="E-Cell Logo"
-            width={isMobile ? 50 : 60}
-            height={isMobile ? 50 : 60}
-            className="mx-auto"
-          />
+          <span className="text-2xl tracking-wide" style={{ color: textColor }}>
+            Entrepreneurship Cell
+          </span>
         </Link>
-      </div>
+      </div> */}
 
       {/* Desktop navigation links */}
       <div
         className="hidden lg:flex space-x-8 xl:space-x-10 items-center"
         style={{ color: textColor }}
       >
-        <Link href="/faq" className="hover:opacity-80 transition-opacity">
-          FAQ
-        </Link>
         <Link
           href="/recruitment/LearnMore"
           className="hover:opacity-80 transition-opacity"
@@ -133,9 +116,6 @@ const Navbar: FC<NavbarProps> = ({ textColor }) => {
           className="hover:opacity-80 transition-opacity"
         >
           APPLY
-        </Link>
-        <Link href="/itinerary" className="hover:opacity-80 transition-opacity">
-          ITINERARY
         </Link>
         <Link href="/about" className="hover:opacity-80 transition-opacity">
           ABOUT E-CELL
@@ -149,7 +129,7 @@ const Navbar: FC<NavbarProps> = ({ textColor }) => {
           <>
             {user ? (
               <div className="flex items-center space-x-4">
-                <span className="text-sm opacity-80">
+                <span className="text-sm">
                   {user.user_metadata?.full_name || user.email}
                 </span>
                 <button
@@ -190,13 +170,6 @@ const Navbar: FC<NavbarProps> = ({ textColor }) => {
               HOME
             </Link>
             <Link
-              href="/faq"
-              className="text-white hover:text-gray-300 transition-colors"
-              onClick={closeMobileMenu}
-            >
-              FAQ
-            </Link>
-            <Link
               href="/recruitment/LearnMore"
               className="text-white hover:text-gray-300 transition-colors"
               onClick={closeMobileMenu}
@@ -209,13 +182,6 @@ const Navbar: FC<NavbarProps> = ({ textColor }) => {
               onClick={closeMobileMenu}
             >
               APPLY
-            </Link>
-            <Link
-              href="/itinerary"
-              className="text-white hover:text-gray-300 transition-colors"
-              onClick={closeMobileMenu}
-            >
-              ITINERARY
             </Link>
             <Link
               href="/about"
@@ -270,17 +236,6 @@ const Navbar: FC<NavbarProps> = ({ textColor }) => {
             >
               ECELL@SNU.EDU.IN
             </a>
-
-            {/* Xcelerate text */}
-            <div className="pt-4 text-xl text-white text-center">
-              <a
-                href="https://unstop.com/competitions/xcelerate-30-ideathon-shiv-nadar-university-snu-greater-noida-1426973"
-                className="text-white hover:text-gray-300 transition-colors underline"
-                onClick={closeMobileMenu}
-              >
-                WELCOME TO XCELERATE 2025
-              </a>
-            </div>
           </div>
         </div>
       </div>
