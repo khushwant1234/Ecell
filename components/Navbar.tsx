@@ -120,6 +120,18 @@ const Navbar: FC<NavbarProps> = ({ textColor }) => {
         <Link href="/faq" className="hover:opacity-80 transition-opacity">
           FAQ
         </Link>
+        <Link
+          href="/recruitment/LearnMore"
+          className="hover:opacity-80 transition-opacity"
+        >
+          TEAMS
+        </Link>
+        <Link
+          href="/recruitment/form"
+          className="hover:opacity-80 transition-opacity"
+        >
+          APPLY
+        </Link>
         <Link href="/itinerary" className="hover:opacity-80 transition-opacity">
           ITINERARY
         </Link>
@@ -155,6 +167,20 @@ const Navbar: FC<NavbarProps> = ({ textColor }) => {
               onClick={closeMobileMenu}
             >
               FAQ
+            </Link>
+            <Link
+              href="/recruitment/LearnMore"
+              className="text-white hover:text-gray-300 transition-colors"
+              onClick={closeMobileMenu}
+            >
+              TEAMS
+            </Link>
+            <Link
+              href="/recruitment/form"
+              className="text-white hover:text-gray-300 transition-colors"
+              onClick={closeMobileMenu}
+            >
+              APPLY
             </Link>
             <Link
               href="/itinerary"
