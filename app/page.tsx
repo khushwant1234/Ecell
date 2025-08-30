@@ -8,7 +8,7 @@ import LP from "@/components/LandingPage/LP";
 import MobileLP from "@/components/LandingPage/MobileLP";
 import Navbar from "@/components/Navbar";
 import CountdownClock from "@/components/CountdownClock";
-import FAQs from "@/components/FAQ";
+// import FAQs from "@/components/FAQ";
 import Footer from "@/components/footer/footer";
 
 const Page = () => {
@@ -66,7 +66,7 @@ const Page = () => {
           <ScrollTransformLayout mainCard={mainCard} sideItems={sideItems} />
         )}
       </main>
-      <FAQs />
+      {/* <FAQs /> */}
       <Footer textColor="#8082E9" />
     </div>
   );
