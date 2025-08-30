@@ -36,14 +36,13 @@ const Footer: React.FC<FooterProps> = ({ textColor }) => {
                 className={`${bigShouldersDisplay.className} font-medium text-black`}
               >
                 <span className="font-bold pr-2">P:</span>
-                +91 87902 50014
+                +91 9717094960
               </div>
               <div
                 className={`${bigShouldersDisplay.className} font-medium text-black`}
               >
                 <span className="font-bold pr-2">P:</span>
-                +91 95802 49433
-              </div>
++91 85958 01132              </div>
             </div>
 
             {/* Social Links - black */}
