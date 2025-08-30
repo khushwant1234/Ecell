@@ -2,8 +2,10 @@
 
 import React, { useState, FormEvent, ChangeEvent } from "react";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
 import SNUProtectedRoute from "@/components/SNUProtectedRoute";
+import { helveticaCompressed, bigShouldersDisplay } from "@/app/fonts";
 
 // --- Type Definitions ---
 type View = "splash" | "form" | "success";
@@ -37,6 +39,7 @@ const branchOptions = [
 
 // --- Main Component ---
 export default function EarlyRecruitmentForm() {
+  const { user, isValidSNUUser } = useAuth();
   const [view, setView] = useState<View>("splash");
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -116,6 +119,21 @@ export default function EarlyRecruitmentForm() {
 
     if (!validateForm() || submissionStatus === "submitting") return;
 
+    // Authentication and SNU email validation
+    if (!user) {
+      setErrorMessage("You must be logged in to submit the form.");
+      setSubmissionStatus("error");
+      return;
+    }
+
+    if (!isValidSNUUser) {
+      setErrorMessage(
+        "Only users with @snu.edu.in email addresses can submit forms."
+      );
+      setSubmissionStatus("error");
+      return;
+    }
+
     setSubmissionStatus("submitting");
     setErrorMessage("");
 
@@ -125,6 +143,8 @@ export default function EarlyRecruitmentForm() {
         email: formData.email.trim().toLowerCase(),
         phone: formData.phone.trim(),
         branch: formData.branch,
+        user_id: user.id, // Add user ID for tracking
+        user_email: user.email, // Add authenticated user email
         submitted_at: new Date().toISOString(),
       };
 
@@ -363,10 +383,14 @@ export default function EarlyRecruitmentForm() {
             d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
           />
         </svg>
-        <h2 className="mt-6 text-3xl font-bold text-gray-900">
+        <h2
+          className={`${bigShouldersDisplay.className} mt-6 text-3xl font-bold text-gray-900 uppercase tracking-wide`}
+        >
           Registration Successful!
         </h2>
-        <p className="mt-4 text-lg text-gray-600">
+        <p
+          className={`${helveticaCompressed.className} mt-4 text-lg text-gray-600 tracking-wide`}
+        >
           Thank you for your interest in early recruitment. We&apos;ve received
           your registration and will contact you at{" "}
           <strong>{formData.email}</strong> with updates about exciting
@@ -410,16 +434,20 @@ export default function EarlyRecruitmentForm() {
                         />
                       </svg>
                     </div>
-                    <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-4">
+                    <h1
+                      className={`${bigShouldersDisplay.className} text-4xl md:text-6xl font-extrabold text-white mb-4 uppercase tracking-wide`}
+                    >
                       Early Recruitment
                     </h1>
-                    <p className="text-lg md:text-xl text-gray-300 mb-8">
+                    <p
+                      className={`${helveticaCompressed.className} text-lg md:text-xl text-gray-300 mb-8 tracking-wide`}
+                    >
                       Get notified about exciting opportunities before they go
                       public!
                     </p>
                     <button
                       onClick={handleStartApplication}
-                      className="bg-white text-blue-600 font-semibold py-3 px-8 rounded-full shadow-lg hover:bg-gray-200 transition-transform transform hover:scale-105 duration-300 ease-in-out"
+                      className={`${bigShouldersDisplay.className} bg-white text-blue-600 font-semibold py-3 px-8 rounded-full shadow-lg hover:bg-gray-200 transition-transform transform hover:scale-105 duration-300 ease-in-out uppercase tracking-wide`}
                     >
                       Join Early Recruitment
                     </button>

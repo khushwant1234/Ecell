@@ -1,10 +1,205 @@
 "use client";
 
 import React, { useState, FormEvent, ChangeEvent } from "react";
+import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import SNUProtectedRoute from "@/components/SNUProtectedRoute";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 import { Camera, CircleDollarSign, PenSquare } from "lucide-react";
+import { helveticaCompressed, bigShouldersDisplay } from "@/app/fonts";
+
+const prompt = [
+  {
+    team: "Tech",
+    scene: "a playful digital workspace",
+    subjects: [
+      {
+        type: "laptop",
+        description: "screen glowing with colorful code symbols",
+        position: "center",
+      },
+      {
+        type: "gear",
+        description: "small, floating, representing problem-solving",
+        position: "around the laptop",
+      },
+      {
+        type: "lightbulb",
+        description: "glowing with soft light",
+        position: "above the laptop",
+      },
+    ],
+    style: "flat modern vector illustration",
+    color_palette: ["neon blue", "teal", "sunny yellow"],
+    lighting: "soft glow from the screen",
+    mood: "innovative, fun, and approachable",
+    background: "abstract geometric shapes",
+    composition: "eye-level, centered icon focus",
+  },
+  {
+    team: "PR & Sponsorship",
+    scene: "a dynamic communication hub",
+    subjects: [
+      {
+        type: "handshake",
+        description: "two cartoon hands shaking warmly",
+        position: "center",
+      },
+      {
+        type: "megaphone",
+        description: "bright and cheerful, sound waves illustrated",
+        position: "side",
+      },
+      {
+        type: "sparkles",
+        description: "small glowing accents for excitement",
+        position: "scattered",
+      },
+    ],
+    style: "playful flat illustration",
+    color_palette: ["orange", "sky blue", "purple"],
+    lighting: "bright and friendly",
+    mood: "trustworthy, energetic, welcoming",
+    background: "simple abstract circles",
+    composition: "central handshake with accents",
+  },
+  {
+    team: "Marketing",
+    scene: "an energetic growth concept",
+    subjects: [
+      {
+        type: "rocket",
+        description: "colorful, cartoonish, launching upward",
+        position: "center",
+      },
+      {
+        type: "bar chart",
+        description: "with colorful upward arrows",
+        position: "beneath rocket",
+      },
+      {
+        type: "dollar symbol",
+        description: "small accent icons floating upward",
+        position: "around",
+      },
+    ],
+    style: "bold flat cartoon vector",
+    color_palette: ["bright green", "electric blue", "magenta"],
+    lighting: "glowing launch effect",
+    mood: "energetic, ambitious, student-friendly",
+    background: "abstract motion lines",
+    composition: "upward vertical flow",
+  },
+  {
+    team: "Design",
+    scene: "a creative studio space",
+    subjects: [
+      {
+        type: "pencil",
+        description: "crossed with a paintbrush",
+        position: "center",
+      },
+      {
+        type: "abstract shapes",
+        description: "triangles, circles, squiggles, colorful",
+        position: "floating around",
+      },
+      {
+        type: "sparkles",
+        description: "tiny glowing dots",
+        position: "background",
+      },
+    ],
+    style: "modern flat playful vector",
+    color_palette: ["pastel pink", "aqua", "yellow"],
+    lighting: "soft and warm",
+    mood: "artistic, fun, inviting",
+    background: "minimal abstract shapes",
+    composition: "centered crossed tools",
+  },
+  {
+    team: "Videography",
+    scene: "a cinematic creative space",
+    subjects: [
+      {
+        type: "film camera",
+        description: "cartoon vintage camera with reels",
+        position: "center",
+      },
+      {
+        type: "play button",
+        description: "glowing brightly",
+        position: "on the camera",
+      },
+      {
+        type: "abstract waves",
+        description: "colorful waves flowing outward",
+        position: "background",
+      },
+    ],
+    style: "flat minimal illustration",
+    color_palette: ["deep purple", "gold", "sky blue"],
+    lighting: "soft glow from play button",
+    mood: "creative, fun, youthful",
+    background: "simple abstract waves",
+    composition: "centered camera with accents",
+  },
+  {
+    team: "Event Management",
+    scene: "a festive planning board",
+    subjects: [
+      {
+        type: "calendar",
+        description: "colorful, with circled date",
+        position: "center",
+      },
+      {
+        type: "balloons",
+        description: "playful, floating upward",
+        position: "around",
+      },
+      {
+        type: "confetti",
+        description: "bright and scattered",
+        position: "background",
+      },
+    ],
+    style: "cartoon flat vector",
+    color_palette: ["red", "yellow", "blue"],
+    lighting: "cheerful and bright",
+    mood: "celebratory, fun, welcoming",
+    background: "confetti-filled space",
+    composition: "central calendar with festive accents",
+  },
+  {
+    team: "Content",
+    scene: "a creative writing desk",
+    subjects: [
+      {
+        type: "notebook",
+        description: "open with visible lines",
+        position: "center",
+      },
+      {
+        type: "quill pen",
+        description: "cartoon feather pen writing softly",
+        position: "on notebook",
+      },
+      {
+        type: "speech bubbles",
+        description: "colorful, small, with letters and hashtags",
+        position: "floating around",
+      },
+    ],
+    style: "flat modern vector",
+    color_palette: ["warm orange", "teal", "lavender"],
+    lighting: "soft warm glow",
+    mood: "expressive, fun, inviting",
+    background: "minimal abstract dots",
+    composition: "centered notebook with accents",
+  },
+];
 
 // --- Helper Components for Icons ---
 const TechIcon = () => (
@@ -594,6 +789,7 @@ const teamConfigs: TeamConfig[] = [
 
 // --- Main Page Component ---
 export default function App() {
+  const { user, isValidSNUUser } = useAuth();
   const [view, setView] = useState<View>("splash");
   const [selectedTeams, setSelectedTeams] = useState<string[]>([]);
   const [currentTeamIndex, setCurrentTeamIndex] = useState(-1);
@@ -695,6 +891,22 @@ export default function App() {
   const handleFormSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!validatePage() || submissionStatus === "submitting") return;
+
+    // Authentication and SNU email validation
+    if (!user) {
+      setErrorMessage("You must be logged in to submit the form.");
+      setSubmissionStatus("error");
+      return;
+    }
+
+    if (!isValidSNUUser) {
+      setErrorMessage(
+        "Only users with @snu.edu.in email addresses can submit forms."
+      );
+      setSubmissionStatus("error");
+      return;
+    }
+
     setSubmissionStatus("submitting");
     setErrorMessage("");
     try {
@@ -706,6 +918,8 @@ export default function App() {
         email: formResponses.email,
         teams: teamNames,
         form_data: formResponses,
+        user_id: user.id, // Add user ID for tracking
+        user_email: user.email, // Add authenticated user email
         submitted_at: new Date().toISOString(),
       };
       const { error } = await supabase
@@ -790,17 +1004,31 @@ export default function App() {
   const renderTeamSelection = () => (
     <div className="text-center w-full max-w-4xl flex flex-col items-center">
       {" "}
-      <h2 className="text-3xl md:text-4xl font-bold text-white mb-2">
+      <h2
+        className={`${bigShouldersDisplay.className} text-3xl md:text-4xl font-bold text-white mb-2 uppercase tracking-wide`}
+      >
         Choose Your Team(s)
       </h2>{" "}
-      <p className="text-md text-gray-300 mb-8">
+      <p
+        className={`${bigShouldersDisplay.className} text-md text-gray-300 mb-4 tracking-wide`}
+      >
         Select all departments you&apos;d like to apply for.
       </p>{" "}
+      <div className="mb-6">
+        <Link
+          href="/recruitment/LearnMore"
+          className={`${bigShouldersDisplay.className} inline-flex items-center text-blue-300 hover:text-blue-100 underline underline-offset-4 transition-colors duration-200 tracking-wide`}
+        >
+          Want to read more about the teams? Learn More →
+        </Link>
+      </div>{" "}
       <div className="flex flex-wrap justify-center items-center gap-4 mb-8">
         {" "}
         <button
           onClick={() => handleTeamSelection("Tech")}
-          className={`flex items-center justify-center w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:-translate-y-1 ${
+          className={`${
+            bigShouldersDisplay.className
+          } flex items-center justify-center w-full sm:w-auto bg-pink-500 hover:bg-pink-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:-translate-y-1 uppercase tracking-wide ${
             selectedTeams.includes("tech-team")
               ? "ring-2 ring-offset-2 ring-offset-slate-900 ring-white"
               : ""
@@ -811,7 +1039,9 @@ export default function App() {
         </button>{" "}
         <button
           onClick={() => handleTeamSelection("Content")}
-          className={`flex items-center justify-center w-full sm:w-auto bg-pink-500 hover:bg-pink-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:-translate-y-1 text-nowrap ${
+          className={`${
+            bigShouldersDisplay.className
+          } flex items-center justify-center w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:-translate-y-1 text-nowrap uppercase tracking-wide ${
             selectedTeams.includes("content-team")
               ? "ring-2 ring-offset-2 ring-offset-slate-900 ring-white"
               : ""
@@ -822,7 +1052,9 @@ export default function App() {
         </button>{" "}
         <button
           onClick={() => handleTeamSelection("PR-Spons")}
-          className={`flex items-center justify-center w-full sm:w-auto bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:-translate-y-1 text-nowrap${
+          className={`${
+            bigShouldersDisplay.className
+          } flex items-center justify-center w-full sm:w-auto bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:-translate-y-1 text-nowrap uppercase tracking-wide ${
             selectedTeams.includes("pr-spons-team")
               ? "ring-2 ring-offset-2 ring-offset-slate-900 ring-white"
               : ""
@@ -832,7 +1064,9 @@ export default function App() {
         </button>{" "}
         <button
           onClick={() => handleTeamSelection("Video")}
-          className={`flex items-center justify-center w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:-translate-y-1 ${
+          className={`${
+            bigShouldersDisplay.className
+          } flex items-center justify-center w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:-translate-y-1 uppercase tracking-wide ${
             selectedTeams.includes("video-team")
               ? "ring-2 ring-offset-2 ring-offset-slate-900 ring-white"
               : ""
@@ -842,7 +1076,9 @@ export default function App() {
         </button>{" "}
         <button
           onClick={() => handleTeamSelection("Marketing")}
-          className={`flex items-center justify-center w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:-translate-y-1 ${
+          className={`${
+            bigShouldersDisplay.className
+          } flex items-center justify-center w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:-translate-y-1 uppercase tracking-wide ${
             selectedTeams.includes("marketing-team")
               ? "ring-2 ring-offset-2 ring-offset-slate-900 ring-white"
               : ""
@@ -853,7 +1089,9 @@ export default function App() {
         </button>{" "}
         <button
           onClick={() => handleTeamSelection("Design")}
-          className={`flex items-center justify-center w-full sm:w-auto bg-purple-500 hover:bg-purple-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:-translate-y-1 ${
+          className={`${
+            bigShouldersDisplay.className
+          } flex items-center justify-center w-full sm:w-auto bg-purple-500 hover:bg-purple-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:-translate-y-1 uppercase tracking-wide ${
             selectedTeams.includes("design-team")
               ? "ring-2 ring-offset-2 ring-offset-slate-900 ring-white"
               : ""
@@ -866,7 +1104,7 @@ export default function App() {
       {selectedTeams.length > 0 && (
         <button
           onClick={handleProceedToForms}
-          className="bg-white text-blue-600 font-semibold py-3 px-8 rounded-full shadow-lg hover:bg-gray-200 transition-transform transform hover:scale-105 duration-300 ease-in-out"
+          className={`${bigShouldersDisplay.className} bg-white text-blue-600 font-semibold py-3 px-8 rounded-full shadow-lg hover:bg-gray-200 transition-transform transform hover:scale-105 duration-300 ease-in-out uppercase tracking-wide`}
         >
           {" "}
           Start Application ({selectedTeams.length} team
@@ -922,7 +1160,7 @@ export default function App() {
                 {" "}
                 <label
                   htmlFor={question.id}
-                  className="block text-lg font-medium text-gray-700 mb-1"
+                  className={`${helveticaCompressed.className} block text-lg font-medium text-gray-700 mb-1 tracking-wide`}
                 >
                   {" "}
                   {question.label}{" "}
@@ -1005,17 +1243,21 @@ export default function App() {
             d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
           />
         </svg>
-        <h2 className="mt-6 text-3xl font-bold text-gray-900">
+        <h2
+          className={`${bigShouldersDisplay.className} mt-6 text-3xl font-bold text-gray-900 uppercase tracking-wide`}
+        >
           Application Submitted!
         </h2>
-        <p className="mt-4 text-lg text-gray-600">
+        <p
+          className={`${helveticaCompressed.className} mt-4 text-lg text-gray-600 tracking-wide`}
+        >
           {" "}
           Thank you for your interest. We&apos;ve received your application for
           the <strong>{teamNames}</strong> team(s) and will be in touch shortly.{" "}
         </p>
         <button
           onClick={handleStartOver}
-          className="mt-8 bg-indigo-600 text-white font-semibold py-3 px-8 rounded-lg shadow-md hover:bg-indigo-700 transition-all transform hover:scale-105 duration-300"
+          className={`${bigShouldersDisplay.className} mt-8 bg-indigo-600 text-white font-semibold py-3 px-8 rounded-lg shadow-md hover:bg-indigo-700 transition-all transform hover:scale-105 duration-300 uppercase tracking-wide`}
         >
           {" "}
           Submit Another Application{" "}
