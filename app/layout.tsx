@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { bigShouldersDisplay, helveticaCompressed } from "@/app/fonts";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 export const metadata: Metadata = {
   title: "E-Cell Website",
@@ -17,7 +18,9 @@ export default function RootLayout({
       lang="en"
       className={`${bigShouldersDisplay.variable} ${helveticaCompressed.variable}`}
     >
-      <body>{children}</body>
+      <body>
+        <AuthProvider>{children}</AuthProvider>
+      </body>
     </html>
   );
 }

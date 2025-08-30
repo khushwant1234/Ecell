@@ -89,8 +89,8 @@ const FloatingHeader: React.FC<FloatingHeaderProps> = ({ title1, title2 }) => {
     <div className="relative py-12 sm:py-16 md:py-24 px-4 overflow-hidden">
       {/* About Us heading - responsive positioning and sizing */}
       <motion.h1
-        className={`text-center text-3xl sm:text-4xl md:text-5xl font-bold text-[#b63b2c] mb-8 sm:mb-12 
-          absolute top-4 sm:top-6 md:top-8 left-0 right-0 mx-auto ${helveticaCompressed.className}`}
+        className={`text-center text-3xl sm:text-4xl md:text-5xl text-[#b63b2c] mb-8 sm:mb-12 
+          absolute top-4 sm:top-6 md:top-8 left-0 right-0 mx-auto ${helveticaCompressed.className} tracking-wide`}
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
@@ -149,7 +149,7 @@ const FloatingHeader: React.FC<FloatingHeaderProps> = ({ title1, title2 }) => {
       <div className="relative z-20 mt-16 sm:mt-20 md:mt-24 max-w-4xl mx-auto sm:ml-4 md:ml-12 lg:ml-24">
         <motion.h1
           className={`whitespace-pre-line text-5xl sm:text-6xl md:text-7xl lg:text-9xl uppercase font-bold 
-            text-[#b63b2c] mb-3 sm:mb-6 text-center sm:text-left ${helveticaCompressed.className}`}
+            text-[#b63b2c] mb-3 sm:mb-6 text-center sm:text-left ${helveticaCompressed.className} tracking-wide`}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
@@ -160,7 +160,7 @@ const FloatingHeader: React.FC<FloatingHeaderProps> = ({ title1, title2 }) => {
         {title2 && (
           <motion.h1
             className={`whitespace-pre-line text-5xl sm:text-6xl md:text-7xl lg:text-9xl uppercase font-bold 
-              text-[#b63b2c] mb-3 sm:mb-6 text-center sm:text-left ${helveticaCompressed.className}`}
+              text-[#b63b2c] mb-3 sm:mb-6 text-center sm:text-left ${helveticaCompressed.className} tracking-wider`}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}

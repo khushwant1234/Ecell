@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { FC, useState, useEffect } from "react";
 import { helveticaCompressed } from "@/app/fonts";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface NavbarProps {
   textColor: string;
@@ -11,6 +12,7 @@ interface NavbarProps {
 const Navbar: FC<NavbarProps> = ({ textColor }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const { user, signOut, signInWithGoogle, loading } = useAuth();
 
   // Check for mobile screen size and handle resize
   useEffect(() => {
@@ -114,7 +116,7 @@ const Navbar: FC<NavbarProps> = ({ textColor }) => {
 
       {/* Desktop navigation links */}
       <div
-        className="hidden lg:flex space-x-8 xl:space-x-10"
+        className="hidden lg:flex space-x-8 xl:space-x-10 items-center"
         style={{ color: textColor }}
       >
         <Link href="/faq" className="hover:opacity-80 transition-opacity">
@@ -141,6 +143,32 @@ const Navbar: FC<NavbarProps> = ({ textColor }) => {
         <Link href="/games" className="hover:opacity-80 transition-opacity">
           GAMES
         </Link>
+
+        {/* Auth Button */}
+        {!loading && (
+          <>
+            {user ? (
+              <div className="flex items-center space-x-4">
+                <span className="text-sm opacity-80">
+                  {user.user_metadata?.full_name || user.email}
+                </span>
+                <button
+                  onClick={signOut}
+                  className="hover:opacity-80 transition-opacity bg-transparent border border-current px-3 py-1 rounded text-sm"
+                >
+                  SIGN OUT
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="hover:opacity-80 transition-opacity bg-transparent border border-current px-3 py-1 rounded text-sm"
+              >
+                SIGN IN
+              </Link>
+            )}
+          </>
+        )}
       </div>
 
       {/* Empty div for spacing on mobile */}
@@ -203,6 +231,36 @@ const Navbar: FC<NavbarProps> = ({ textColor }) => {
             >
               GAMES
             </Link>
+
+            {/* Auth Button for Mobile */}
+            {!loading && (
+              <>
+                {user ? (
+                  <div className="flex flex-col items-center space-y-4 pt-4">
+                    <span className="text-white text-lg">
+                      {user.user_metadata?.full_name || user.email}
+                    </span>
+                    <button
+                      onClick={() => {
+                        signOut();
+                        closeMobileMenu();
+                      }}
+                      className="text-white hover:text-gray-300 transition-colors border border-white px-4 py-2 rounded"
+                    >
+                      SIGN OUT
+                    </button>
+                  </div>
+                ) : (
+                  <Link
+                    href="/login"
+                    className="text-white hover:text-gray-300 transition-colors border border-white px-4 py-2 rounded"
+                    onClick={closeMobileMenu}
+                  >
+                    SIGN IN
+                  </Link>
+                )}
+              </>
+            )}
 
             {/* Mobile-only email */}
             <a

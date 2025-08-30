@@ -2,13 +2,9 @@
 
 import React, { useState, FormEvent, ChangeEvent } from "react";
 import Navbar from "@/components/Navbar";
-import { createClient } from "@supabase/supabase-js";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import { supabase } from "@/lib/supabase";
 import { Camera, CircleDollarSign, PenSquare } from "lucide-react";
-
-// --- Supabase Client Setup ---
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // --- Helper Components for Icons ---
 const TechIcon = () => (
@@ -1029,41 +1025,43 @@ export default function App() {
   };
 
   return (
-    <div>
-      <Navbar textColor="#1f2937" />
-      {view === "form" ? (
-        renderFormPage()
-      ) : (
-        <div
-          className={`transition-colors duration-500 bg-gradient-to-br from-gray-800 via-slate-900 to-black`}
-        >
-          <main className="flex min-h-screen flex-col items-center justify-center p-4">
-            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
-            <div className="relative z-10 flex items-center justify-center w-full">
-              {view === "splash" && (
-                <div className="text-center">
-                  {" "}
-                  <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-4">
-                    Welcome to Entrepreneurship Cell
-                  </h1>{" "}
-                  <p className="text-lg md:text-xl text-gray-300 mb-8">
-                    Join a team to get started.
-                  </p>{" "}
-                  <button
-                    onClick={handleSelectTeamAndContinue}
-                    className="bg-white text-blue-600 font-semibold py-3 px-8 rounded-full shadow-lg hover:bg-gray-200 transition-transform transform hover:scale-105 duration-300 ease-in-out"
-                  >
+    <ProtectedRoute>
+      <div>
+        <Navbar textColor="#1f2937" />
+        {view === "form" ? (
+          renderFormPage()
+        ) : (
+          <div
+            className={`transition-colors duration-500 bg-gradient-to-br from-gray-800 via-slate-900 to-black`}
+          >
+            <main className="flex min-h-screen flex-col items-center justify-center p-4">
+              <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
+              <div className="relative z-10 flex items-center justify-center w-full">
+                {view === "splash" && (
+                  <div className="text-center">
                     {" "}
-                    Select Team and Continue{" "}
-                  </button>{" "}
-                </div>
-              )}
-              {view === "teams" && renderTeamSelection()}
-              {view === "success" && renderSuccessMessage()}
-            </div>
-          </main>
-        </div>
-      )}
-    </div>
+                    <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-4">
+                      Welcome to Entrepreneurship Cell
+                    </h1>{" "}
+                    <p className="text-lg md:text-xl text-gray-300 mb-8">
+                      Join a team to get started.
+                    </p>{" "}
+                    <button
+                      onClick={handleSelectTeamAndContinue}
+                      className="bg-white text-blue-600 font-semibold py-3 px-8 rounded-full shadow-lg hover:bg-gray-200 transition-transform transform hover:scale-105 duration-300 ease-in-out"
+                    >
+                      {" "}
+                      Select Team and Continue{" "}
+                    </button>{" "}
+                  </div>
+                )}
+                {view === "teams" && renderTeamSelection()}
+                {view === "success" && renderSuccessMessage()}
+              </div>
+            </main>
+          </div>
+        )}
+      </div>
+    </ProtectedRoute>
   );
 }
