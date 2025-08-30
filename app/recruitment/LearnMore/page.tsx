@@ -12,6 +12,7 @@ import { helveticaCompressed, bigShouldersDisplay } from "@/app/fonts";
 const teamsData = [
   {
     name: "Technology Team",
+    teamId: "tech-team",
     description:
       "The Technology Team is the engine of our organization, responsible for building and maintaining our digital infrastructure. From developing websites to integrating hardware systems, this team makes ideas come alive with code and circuits.",
     imageUrl: "/images/tech-team.jpg",
@@ -21,6 +22,7 @@ const teamsData = [
   },
   {
     name: "Marketing Team",
+    teamId: "marketing-team",
     description:
       "The Marketing Team drives visibility and growth by crafting campaigns, managing social media, and building strong brand narratives. They ensure our voice reaches the right audience at the right time.",
     imageUrl: "/images/marketing-team.jpg",
@@ -30,6 +32,7 @@ const teamsData = [
   },
   {
     name: "PR & Sponsorship Team",
+    teamId: "pr-spons-team",
     description:
       "The PR and Sponsorship Team builds bridges with organizations and the community. From partnerships to collaborations, they manage our reputation and bring valuable sponsorships to power our initiatives.",
     imageUrl: "/images/pr-spons-team.jpg",
@@ -43,6 +46,7 @@ const teamsData = [
   },
   {
     name: "Event Management Team",
+    teamId: "event-team",
     description:
       "The Event Management Team orchestrates our flagship programs and workshops. From planning logistics to executing flawless events, they make sure every detail is taken care of for a memorable experience.",
     imageUrl: "/images/event-team.jpg",
@@ -52,6 +56,7 @@ const teamsData = [
   },
   {
     name: "Design Team",
+    teamId: "design-team",
     description:
       "The Design Team shapes our identity through stunning visuals, intuitive user experiences, and creative branding. They are the storytellers who translate ideas into compelling visuals.",
     imageUrl: "/images/design-team.jpg",
@@ -61,6 +66,7 @@ const teamsData = [
   },
   {
     name: "Videography Team",
+    teamId: "video-team",
     description:
       "The Videography Team captures stories in motion, producing impactful videos that highlight our events, initiatives, and journeys. They are the visual storytellers of our club.",
     imageUrl: "/images/videography-team.jpg",
@@ -70,6 +76,7 @@ const teamsData = [
   },
   {
     name: "Content & Creation Team",
+    teamId: "content-team",
     description:
       "The Content and Creation Team brings ideas to life through words, blogs, and storytelling. From writing engaging content to producing creative campaigns, they fuel the voice of our community.",
     imageUrl: "/images/content-team.jpg",
@@ -272,7 +279,8 @@ export default function LearnMorePage() {
 
                     {/* Action Button */}
                     <div>
-                      <button
+                      <Link
+                        href={`/recruitment/form?view=teams&teams=${team.teamId}`}
                         className={`${bigShouldersDisplay.className} group/btn inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r ${team.gradient} text-white rounded-xl font-semibold transition-all duration-300 hover:shadow-xl hover:scale-105 uppercase tracking-wide`}
                       >
                         Join This Team
@@ -289,7 +297,7 @@ export default function LearnMorePage() {
                             d="M17 8l4 4m0 0l-4 4m4-4H3"
                           />
                         </svg>
-                      </button>
+                      </Link>
                     </div>
                   </div>
                 </div>

@@ -1339,7 +1339,7 @@ export default function App() {
             </button>
           </div>
         </header>
-        <main className="flex-grow p-4 sm:p-8 overflow-y-auto">
+        <main className="flex-grow p-4 sm:p-8">
           <div className="max-w-2xl mx-auto space-y-8">
             {" "}
             {currentQuestions.map((question) => (
@@ -1470,7 +1470,11 @@ export default function App() {
                   <div className="text-center">
                     {" "}
                     <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-4">
-                      Welcome to Entrepreneurship Cell
+                      Welcome
+                      {user?.user_metadata?.full_name
+                        ? `, ${user.user_metadata.full_name.split(" ")[0]}`
+                        : ""}{" "}
+                      to Entrepreneurship Cell
                     </h1>{" "}
                     <p className="text-lg md:text-xl text-gray-300 mb-8">
                       Join a team to get started.
