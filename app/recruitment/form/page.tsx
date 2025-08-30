@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, FormEvent, ChangeEvent, useEffect, Suspense } from "react";
+import React, {
+  useState,
+  FormEvent,
+  ChangeEvent,
+  useEffect,
+  Suspense,
+} from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
@@ -1496,12 +1502,12 @@ function App() {
                     <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-4">
                       Welcome
                       {user?.user_metadata?.full_name
-                        ? ` ${user.user_metadata.full_name.split(" ")[0]},`
+                        ? " " + user.user_metadata.full_name.split(" ")[0] + ","
                         : ""}{" "}
                       to Entrepreneurship Cell
                     </h1>{" "}
                     <p className="text-lg md:text-xl text-gray-300 mb-8">
-                      Let's start your journey with us!
+                      Let&apos;s start your journey with us!
                     </p>{" "}
                     <button
                       onClick={handleSelectTeamAndContinue}
