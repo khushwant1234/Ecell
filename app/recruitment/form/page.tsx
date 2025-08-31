@@ -283,7 +283,7 @@ interface ValidationErrors {
 }
 
 // --- Question Configurations ---
-const generalQuestions: Question[] = [
+export const generalQuestions: Question[] = [
   {
     id: "name",
     label: "Full name",
@@ -332,7 +332,7 @@ const generalQuestions: Question[] = [
     validation: { required: "Year is required" },
   },
 ];
-const teamConfigs: TeamConfig[] = [
+export const teamConfigs: TeamConfig[] = [
   {
     id: "tech-team",
     title: "Tech Team",
@@ -1000,55 +1000,81 @@ export default function App() {
     }
   };
 
-  const handleFormSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!validatePage() || submissionStatus === "submitting") return;
+const handleFormSubmit = async (e: FormEvent) => {
+  e.preventDefault();
+  if (!validatePage() || submissionStatus === "submitting") return;
 
-    // Authentication and SNU email validation
-    if (!user) {
-      setErrorMessage("You must be logged in to submit the form.");
+  // Authentication and SNU email validation
+  if (!user) {
+    setErrorMessage("You must be logged in to submit the form.");
+    setSubmissionStatus("error");
+    return;
+  }
+
+  if (!isValidSNUUser) {
+    setErrorMessage(
+      "Only users with @snu.edu.in email addresses can submit forms."
+    );
+    setSubmissionStatus("error");
+    return;
+  }
+
+  setSubmissionStatus("submitting");
+  setErrorMessage("");
+
+  try {
+    // Check submission count first
+    const { data: existingApplications, error: countError } = await supabase
+      .from('applications')
+      .select('id')
+      .eq('user_id', user.id);
+
+    if (countError) {
+      setErrorMessage(`Error checking submission limit: ${countError.message}`);
       setSubmissionStatus("error");
       return;
     }
 
-    if (!isValidSNUUser) {
-      setErrorMessage(
-        "Only users with @snu.edu.in email addresses can submit forms."
-      );
+    if (existingApplications && existingApplications.length >= 10) {
+      setErrorMessage("You have already submitted the maximum number of applications (10).");
       setSubmissionStatus("error");
       return;
     }
 
-    setSubmissionStatus("submitting");
-    setErrorMessage("");
-    try {
-      const teamNames = selectedTeams.map(
-        (id) => teamConfigs.find((t) => t.id === id)?.title || id
-      );
-      const submissionData = {
-        name: formResponses.name,
-        email: formResponses.email,
-        teams: teamNames,
-        form_data: formResponses,
-        user_id: user.id, // Add user ID for tracking
-        user_email: user.email, // Add authenticated user email
-        submitted_at: new Date().toISOString(),
-      };
-      const { error } = await supabase
-        .from("applications")
-        .insert(submissionData);
-      if (error) {
-        setErrorMessage(`Submission failed: ${error.message}`);
-        setSubmissionStatus("error");
+    const teamNames = selectedTeams.map(
+      (id) => teamConfigs.find((t) => t.id === id)?.title || id
+    );
+    
+    const submissionData = {
+      name: formResponses.name,
+      email: formResponses.email,
+      teams: teamNames,
+      form_data: formResponses,
+      user_id: user.id,
+      user_email: user.email,
+      submitted_at: new Date().toISOString(),
+    };
+
+    const { error } = await supabase
+      .from("applications")
+      .insert(submissionData);
+
+    if (error) {
+      if (error.message.includes('new row violates row-level security policy')) {
+        setErrorMessage("You have reached the maximum number of applications allowed (10).");
       } else {
-        setView("success");
+        setErrorMessage(`Submission failed: ${error.message}`);
       }
-    } catch (error) {
-      console.error(error); // Log unexpected errors
-      setErrorMessage("An unexpected error occurred.");
       setSubmissionStatus("error");
+    } else {
+      setView("success");
     }
-  };
+  } catch (error) {
+    console.error(error);
+    setErrorMessage("An unexpected error occurred.");
+    setSubmissionStatus("error");
+  }
+};
 
   const handleStartOver = () => {
     setFormResponses({});
