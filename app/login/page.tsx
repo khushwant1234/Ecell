@@ -53,9 +53,7 @@ export default function LoginPage() {
           <div className="text-center">
             <h1 className="text-4xl font-bold mb-2">Welcome to E-Cell</h1>
             <p className="text-gray-300 mb-2">
-              {redirectPath
-                ? `Sign in to access ${redirectPath}`
-                : "Sign in to access the recruitment forms"}
+              Sign in to access the recruitment forms
             </p>
             <p className="text-yellow-400 text-sm font-medium mb-8">
               Please use your <strong>@snu.edu.in</strong> email address
