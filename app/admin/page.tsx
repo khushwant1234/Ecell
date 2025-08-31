@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 // Import your question configurations
-import { generalQuestions, teamConfigs } from "../recruitment/form/page"; // Update this path
+import { generalQuestions, teamConfigs } from "../recruitment/form/teamInfo"; // Update this path
 
 // Initialize Supabase client - replace with your actual configuration
 const supabase = createClient(
