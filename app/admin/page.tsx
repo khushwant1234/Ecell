@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Eye, EyeOff, Download, Filter, Search, Users, Calendar, Mail, Phone, User, LogOut, Shield } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 // Import your question configurations
@@ -10,6 +10,7 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
+
 const teamColors: { [key: string]: string } = {
   "Tech Team": "bg-pink-100 text-pink-800 border-pink-200",
   "Content & Creation Team": "bg-blue-100 text-blue-800 border-blue-200", 
@@ -40,10 +41,11 @@ interface Stats {
 
 const AdminDashboard = () => {
   const [user, setUser] = useState<any>(null);
-  const [applications, setApplications] = useState<Application[]>([]);
-  const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [adminCheckComplete, setAdminCheckComplete] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [applicationsLoading, setApplicationsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTeam, setSelectedTeam] = useState('all');
   const [expandedCards, setExpandedCards] = useState(new Set<number>());
@@ -53,16 +55,19 @@ const AdminDashboard = () => {
     recent: 0
   });
 
-  // Create a question mapping for quick lookup
-  const createQuestionMapping = () => {
+  // Use refs to track initialization and prevent multiple calls
+  const authInitialized = useRef(false);
+  const authListenerSet = useRef(false);
+  const mounted = useRef(true);
+
+  // Memoize question mapping
+  const questionMapping = useMemo(() => {
     const questionMap: Record<string, string> = {};
     
-    // Add general questions
     generalQuestions.forEach(question => {
       questionMap[question.id] = question.label;
     });
     
-    // Add team-specific questions
     teamConfigs.forEach(team => {
       team.questions.forEach(question => {
         questionMap[question.id] = question.label;
@@ -70,18 +75,13 @@ const AdminDashboard = () => {
     });
     
     return questionMap;
-  };
+  }, []);
 
-  const questionMapping = createQuestionMapping();
+  const getQuestionLabel = useCallback((questionId: string): string => {
+    return questionMapping[questionId] || questionId;
+  }, [questionMapping]);
 
-  // Function to get question label by ID
-  const getQuestionLabel = (questionId: string): string => {
-    return questionMapping[questionId] || questionId; // Fallback to ID if label not found
-  };
-
-  // Function to get team config by team title
-  const getTeamConfigByTitle = (teamTitle: string) => {
-    // Map team titles to config IDs
+  const getTeamConfigByTitle = useCallback((teamTitle: string) => {
     const teamMapping: Record<string, string> = {
       "Tech Team": "tech-team",
       "Marketing Team": "marketing-team", 
@@ -94,16 +94,331 @@ const AdminDashboard = () => {
     
     const configId = teamMapping[teamTitle];
     return teamConfigs.find(config => config.id === configId);
+  }, []);
+
+  // Check admin status
+// Improved auth section with better state management
+
+const checkAdminStatus = useCallback(async (email: string | undefined): Promise<boolean> => {
+  if (!email) return false;
+  
+  try {
+    const { data, error } = await supabase
+      .from('admin_users')
+      .select('email')
+      .eq('email', email)
+      .single();
+
+    if (error && error.message.includes('relation "admin_users" does not exist')) {
+      return email.endsWith('@snu.edu.in');
+    }
+
+    if (error) {
+      console.error('Admin check error:', error);
+      return false;
+    }
+
+    return !!data;
+  } catch (error) {
+    console.error('Error checking admin status:', error);
+    return false;
+  }
+}, []);
+
+// Memoize admin status when user changes
+const adminStatus = useMemo(() => {
+  if (!user?.email || !authChecked) return false;
+  return isAdmin; // This will be set by the effect below
+}, [user?.email, isAdmin, authChecked]);
+
+// Memoize whether we should fetch applications
+const shouldFetchApplications = useMemo(() => {
+  return authChecked && 
+         user && 
+         isAdmin && 
+         applications.length === 0 && 
+         !applicationsLoading;
+}, [authChecked, user, isAdmin, applications.length, applicationsLoading]);
+
+// Single initialization effect - simplified and more robust
+useEffect(() => {
+  let mounted = true;
+  let authSubscription: any = null;
+
+  const initializeAuth = async () => {
+    // Prevent multiple initializations
+    if (authInitialized.current) return;
+    authInitialized.current = true;
+
+    try {
+      console.log('Initializing auth...');
+      
+      // Get current session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error('Session error:', sessionError);
+      }
+
+      const currentUser = session?.user || null;
+      console.log('Current user from session:', currentUser?.email);
+      
+      if (!mounted) return;
+
+      // Set initial user state
+      setUser(currentUser);
+
+      // Check admin status if user exists
+      if (currentUser) {
+        const isUserAdmin = await checkAdminStatus(currentUser.email);
+        if (mounted) {
+          setIsAdmin(isUserAdmin);
+        }
+      }
+
+      // Set auth as checked
+      if (mounted) {
+        setAuthChecked(true);
+        setLoading(false);
+      }
+
+      // Set up auth listener - only once
+      if (!authListenerSet.current) {
+        authListenerSet.current = true;
+        
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            if (!mounted) return;
+            
+            console.log('Auth state changed:', event);
+            
+            const newUser = session?.user || null;
+            
+            // Handle different auth events
+            if (event === 'SIGNED_OUT') {
+              setUser(null);
+              setIsAdmin(false);
+              setApplications([]);
+              setAuthChecked(true);
+              setLoading(false);
+              return;
+            }
+            
+            if (event === 'TOKEN_REFRESHED') {
+              // Don't do anything for token refresh - just update user if needed
+              if (newUser && (!user || user.id !== newUser.id)) {
+                setUser(newUser);
+              }
+              return;
+            }
+            
+            if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+              setUser(newUser);
+              
+              if (newUser) {
+                const isUserAdmin = await checkAdminStatus(newUser.email);
+                if (mounted) {
+                  setIsAdmin(isUserAdmin);
+                }
+              } else {
+                setIsAdmin(false);
+                setApplications([]);
+              }
+              
+              if (mounted) {
+                setAuthChecked(true);
+                setLoading(false);
+              }
+            }
+          }
+        );
+        
+        authSubscription = subscription;
+      }
+
+    } catch (error) {
+      console.error('Auth initialization error:', error);
+      if (mounted) {
+        setAuthChecked(true);
+        setLoading(false);
+      }
+    }
   };
 
-  // Function to render form data separated by team
-  const renderFormDataByTeam = (formData: any, appliedTeams: string[]) => {
+  // Only initialize if not already done
+  initializeAuth();
+
+  // Cleanup function
+  return () => {
+    mounted = false;
+    if (authSubscription) {
+      authSubscription.unsubscribe();
+    }
+  };
+}, []); // Empty dependency array - run only once
+
+// Separate effect for fetching applications - triggered by memoized condition
+useEffect(() => {
+  if (shouldFetchApplications) {
+    console.log('Fetching applications for admin user...');
+    fetchApplications();
+  }
+}, [shouldFetchApplications]); // Dependency on memoized value
+
+// Remove the visibility change effect entirely - it's not needed
+// The auth state should be stable regardless of tab switching
+
+  const fetchApplications = async () => {
+    if (!user || !isAdmin || applicationsLoading) return;
+    
+    setApplicationsLoading(true);
+    try {
+      console.log('Fetching applications...');
+      const { data, error } = await supabase
+        .from('applications')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching applications:', error);
+        return;
+      }
+
+      console.log('Applications fetched:', data?.length || 0);
+      if (mounted.current) {
+        setApplications(data || []);
+        calculateStats(data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching applications:', error);
+    } finally {
+      if (mounted.current) {
+        setApplicationsLoading(false);
+      }
+    }
+  };
+
+  const calculateStats = useCallback((data: Application[]) => {
+    const teamStats: Record<string, number> = {};
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    data.forEach(app => {
+      app.teams.forEach(team => {
+        teamStats[team] = (teamStats[team] || 0) + 1;
+      });
+    });
+
+    const recent = data.filter(app => 
+      new Date(app.created_at) > oneDayAgo
+    ).length;
+
+    setStats({
+      total: data.length,
+      byTeam: teamStats,
+      recent
+    });
+  }, []);
+
+  const handleSignIn = async () => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?redirect=/admin`
+        }
+      });
+      
+      if (error) {
+        console.error('Error signing in:', error);
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error('Sign in error:', error);
+      setLoading(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Error signing out:', error);
+      }
+      
+      // Reset all state
+      setUser(null);
+      setIsAdmin(false);
+      setApplications([]);
+      setAuthChecked(true);
+      setLoading(false);
+      
+      // Reset refs
+      authInitialized.current = false;
+      authListenerSet.current = false;
+    } catch (error) {
+      console.error('Sign out error:', error);
+      setLoading(false);
+    }
+  };
+
+  const toggleCardExpansion = useCallback((id: number) => {
+    setExpandedCards(prev => {
+      const newExpanded = new Set(prev);
+      if (newExpanded.has(id)) {
+        newExpanded.delete(id);
+      } else {
+        newExpanded.add(id);
+      }
+      return newExpanded;
+    });
+  }, []);
+
+  const filteredApplications = useMemo(() => {
+    return applications.filter(app => {
+      const matchesSearch = app.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           app.email.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesTeam = selectedTeam === 'all' || app.teams.some(team => 
+        team.toLowerCase().includes(selectedTeam.toLowerCase())
+      );
+      return matchesSearch && matchesTeam;
+    });
+  }, [applications, searchTerm, selectedTeam]);
+
+  const exportToCSV = useCallback(() => {
+    const headers = ['ID', 'Name', 'Email', 'Teams', 'Phone', 'Branch', 'Year', 'Roll Number', 'Submitted At'];
+    const csvData = filteredApplications.map(app => [
+      app.id,
+      app.name,
+      app.email,
+      app.teams.join('; '),
+      app.form_data?.phone || '',
+      app.form_data?.branch || '',
+      app.form_data?.year || '',
+      app.form_data?.rollNumber || '',
+      new Date(app.submitted_at).toLocaleDateString()
+    ]);
+
+    const csvContent = [headers, ...csvData]
+      .map(row => row.map(field => `"${field}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ecell_applications_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  }, [filteredApplications]);
+
+  const renderFormDataByTeam = useCallback((formData: any, appliedTeams: string[]) => {
     if (!formData) return null;
 
-    const excludeKeys = ['name', 'email', 'phone', 'branch', 'year', 'rollNumber']; // These are shown separately
+    const excludeKeys = ['name', 'email', 'phone', 'branch', 'year', 'rollNumber'];
     const allQuestionIds = new Set<string>();
 
-    // Collect all question IDs from applied teams
     appliedTeams.forEach(teamTitle => {
       const teamConfig = getTeamConfigByTitle(teamTitle);
       if (teamConfig) {
@@ -111,20 +426,17 @@ const AdminDashboard = () => {
       }
     });
 
-    // Separate general questions and team-specific questions
     const generalAnswers: Array<[string, any]> = [];
     const teamAnswers: Record<string, Array<[string, any]>> = {};
 
     Object.entries(formData).forEach(([key, value]) => {
       if (excludeKeys.includes(key) || !value) return;
 
-      // Check if this is a general question
       const isGeneralQuestion = generalQuestions.some(q => q.id === key);
       
       if (isGeneralQuestion) {
         generalAnswers.push([key, value]);
       } else if (allQuestionIds.has(key)) {
-        // Find which team this question belongs to
         for (const teamTitle of appliedTeams) {
           const teamConfig = getTeamConfigByTitle(teamTitle);
           if (teamConfig && teamConfig.questions.some(q => q.id === key)) {
@@ -136,7 +448,6 @@ const AdminDashboard = () => {
           }
         }
       } else {
-        // If we can't categorize it, put it in general
         generalAnswers.push([key, value]);
       }
     });
@@ -180,7 +491,7 @@ const AdminDashboard = () => {
           if (!teamQuestions || teamQuestions.length === 0) return null;
 
           const teamColor = teamColors[teamTitle] || 'bg-gray-100 text-gray-800 border-gray-200';
-          const teamLetter = String.fromCharCode(65 + index); // A, B, C, etc.
+          const teamLetter = String.fromCharCode(65 + index);
 
           return (
             <div key={teamTitle}>
@@ -226,257 +537,10 @@ const AdminDashboard = () => {
         })}
       </div>
     );
-  };
+  }, [getQuestionLabel, getTeamConfigByTitle]);
 
-  // Initialize auth
-  useEffect(() => {
-    const initAuth = async () => {
-      try {
-        console.log('Initializing auth...');
-        const { data: { user }, error } = await supabase.auth.getUser();
-        
-        if (error) {
-          console.error('Error getting user:', error);
-          setUser(null);
-          setLoading(false);
-          return;
-        }
-        
-        console.log('Current user:', user);
-        setUser(user);
-        
-        if (user) {
-          await checkAdminStatus(user.email);
-        } else {
-          setAdminCheckComplete(true);
-          setLoading(false);
-        }
-      } catch (error) {
-        console.error('Auth initialization error:', error);
-        setUser(null);
-        setLoading(false);
-      }
-    };
-
-    initAuth();
-
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
-        
-        const newUser = session?.user ?? null;
-        setUser(newUser);
-        
-        if (newUser) {
-          setLoading(true);
-          await checkAdminStatus(newUser.email);
-        } else {
-          setIsAdmin(false);
-          setAdminCheckComplete(true);
-          setLoading(false);
-          setApplications([]); // Clear applications when user logs out
-        }
-      }
-    );
-
-    return () => {
-      console.log('Cleaning up auth subscription');
-      subscription?.unsubscribe();
-    };
-  }, []);
-
-  // Check if user is admin
-  const checkAdminStatus = async (email: string | undefined) => {
-    console.log('Checking admin status for:', email);
-    setAdminCheckComplete(false);
-    
-    if (!email) {
-      setIsAdmin(false);
-      setAdminCheckComplete(true);
-      setLoading(false);
-      return;
-    }
-    
-    try {
-      const { data, error } = await supabase
-        .from('admin_users')
-        .select('email')
-        .eq('email', email)
-        .single();
-
-      console.log('Admin check result:', { data, error });
-
-      // If admin_users table doesn't exist yet, temporarily allow all @snu.edu.in emails
-      if (error && error.message.includes('relation "admin_users" does not exist')) {
-        console.log('Admin table not found, checking for @snu.edu.in domain');
-        const isAdminByDomain = email.endsWith('@snu.edu.in');
-        setIsAdmin(isAdminByDomain);
-        setAdminCheckComplete(true);
-        setLoading(false);
-        return;
-      }
-
-      if (error) {
-        console.error('Admin check error:', error);
-        setIsAdmin(false);
-      } else {
-        setIsAdmin(!!data);
-      }
-    } catch (error) {
-      console.error('Error checking admin status:', error);
-      setIsAdmin(false);
-    } finally {
-      setAdminCheckComplete(true);
-      setLoading(false);
-    }
-  };
-
-  // Fetch applications when user is authenticated and is admin
-  useEffect(() => {
-    if (adminCheckComplete && user && isAdmin) {
-      console.log('User is admin, fetching applications...');
-      fetchApplications();
-    } else if (adminCheckComplete && user && !isAdmin) {
-      console.log('User authenticated but not admin');
-    } else if (adminCheckComplete && !user) {
-      console.log('No user authenticated');
-    }
-  }, [user, isAdmin, adminCheckComplete]);
-
-  const fetchApplications = async () => {
-    if (!user || !isAdmin) return;
-    
-    try {
-      console.log('Fetching applications...');
-      const { data, error } = await supabase
-        .from('applications')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching applications:', error);
-        throw error;
-      }
-
-      console.log('Applications fetched:', data?.length || 0);
-      setApplications(data || []);
-      calculateStats(data || []);
-    } catch (error) {
-      console.error('Error fetching applications:', error);
-      // Don't clear applications on error, keep existing data
-    }
-  };
-
-  const calculateStats = (data: Application[]) => {
-    const teamStats: Record<string, number> = {};
-    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-
-    data.forEach(app => {
-      app.teams.forEach(team => {
-        teamStats[team] = (teamStats[team] || 0) + 1;
-      });
-    });
-
-    const recent = data.filter(app => 
-      new Date(app.created_at) > oneDayAgo
-    ).length;
-
-    setStats({
-      total: data.length,
-      byTeam: teamStats,
-      recent
-    });
-  };
-
-  const handleSignIn = async () => {
-    try {
-      setLoading(true);
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback?redirect=/admin`
-        }
-      });
-      
-      if (error) {
-        console.error('Error signing in:', error);
-        setLoading(false);
-      }
-      // Don't set loading to false here - let the auth state change handle it
-    } catch (error) {
-      console.error('Sign in error:', error);
-      setLoading(false);
-    }
-  };
-
-  const handleSignOut = async () => {
-    try {
-      setLoading(true);
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('Error signing out:', error);
-      }
-      // Clear state immediately
-      setUser(null);
-      setIsAdmin(false);
-      setApplications([]);
-      setAdminCheckComplete(true);
-      setLoading(false);
-    } catch (error) {
-      console.error('Sign out error:', error);
-      setLoading(false);
-    }
-  };
-
-  const toggleCardExpansion = (id: number) => {
-    const newExpanded = new Set(expandedCards);
-    if (newExpanded.has(id)) {
-      newExpanded.delete(id);
-    } else {
-      newExpanded.add(id);
-    }
-    setExpandedCards(newExpanded);
-  };
-
-  const exportToCSV = () => {
-    const headers = ['ID', 'Name', 'Email', 'Teams', 'Phone', 'Branch', 'Year', 'Roll Number', 'Submitted At'];
-    const csvData = filteredApplications.map(app => [
-      app.id,
-      app.name,
-      app.email,
-      app.teams.join('; '),
-      app.form_data?.phone || '',
-      app.form_data?.branch || '',
-      app.form_data?.year || '',
-      app.form_data?.rollNumber || '',
-      new Date(app.submitted_at).toLocaleDateString()
-    ]);
-
-    const csvContent = [headers, ...csvData]
-      .map(row => row.map(field => `"${field}"`).join(','))
-      .join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `ecell_applications_${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
-  };
-
-  const filteredApplications = applications.filter(app => {
-    const matchesSearch = app.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         app.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesTeam = selectedTeam === 'all' || app.teams.some(team => 
-      team.toLowerCase().includes(selectedTeam.toLowerCase())
-    );
-    return matchesSearch && matchesTeam;
-  });
-
-  // Loading state
-  if (loading || !adminCheckComplete) {
+  // Show loading only when we haven't checked auth yet
+  if (!authChecked || (loading && !user)) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -651,7 +715,12 @@ const AdminDashboard = () => {
 
         {/* Applications List */}
         <div className="space-y-6">
-          {filteredApplications.length === 0 ? (
+          {applicationsLoading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="mt-4 text-gray-600">Loading applications...</p>
+            </div>
+          ) : filteredApplications.length === 0 ? (
             <div className="text-center py-12">
               <Users className="mx-auto h-12 w-12 text-gray-400" />
               <h3 className="mt-2 text-sm font-medium text-gray-900">No applications found</h3>
@@ -713,13 +782,11 @@ const AdminDashboard = () => {
 
                       {expandedCards.has(app.id) && (
                         <div className="mt-6 space-y-6 border-t pt-6">
-                          {/* Readable Form Data by Team */}
                           <div>
                             <h4 className="font-semibold text-gray-800 mb-6 text-lg">Application Details</h4>
                             {renderFormDataByTeam(app.form_data, app.teams)}
                           </div>
                           
-                          {/* Raw JSON for debugging */}
                           <div className="bg-gray-50 rounded-lg p-4">
                             <h4 className="font-medium text-gray-700 mb-2">Raw Form Data (JSON)</h4>
                             <pre className="text-xs text-gray-600 overflow-x-auto whitespace-pre-wrap max-h-64 overflow-y-auto bg-white p-3 rounded border">
